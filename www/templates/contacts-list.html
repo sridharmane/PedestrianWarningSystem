@@ -1,0 +1,19 @@
+<!--
+  This template loads for the 'tab.friend-detail' state (app.js)
+  'friend' is a $scope variable created in the FriendsCtrl controller (controllers.js)
+  The FriendsCtrl pulls data from the Friends service (service.js)
+  The Friends service returns an array of friend data
+-->
+<ion-modal-view id="contactsList">
+    <ion-header-bar class="bar-positive">
+        <h1 class="title">Select Contact</h1>
+        <a ng-click="closeModal()" class="button button-icon icon ion-close"></a>
+    </ion-header-bar>
+    <ion-content>
+    <ion-list>
+        <ion-item ng-click="selectContact(contact.id)" ng-repeat="contact in contacts" class="item-avatar"><img ng-src="{{contact.face}}">
+            <h2>{{contact.name}}</h2>
+        </ion-item>
+    </ion-list>
+    </ion-content>
+</ion-modal-view>
