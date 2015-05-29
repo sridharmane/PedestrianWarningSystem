@@ -86,6 +86,30 @@ angular.module('warningApp.controllers', [])
     var error = function (error) {
         console.log(error);
     };
+    
+    var notifyUser = function(direction){
+    if($scope.settings.soundEnabled)
+        playSound(direction);
+    if($scope.settings.vibrationEnabled)
+        vibrateWithPattern();
+    }
+
+    var vibrate = function (time) {
+        navigator.vibrate(time);
+    };
+    var vibrateWithPattern = function () {
+        for (var i = 0; i < $scope.settings.vibrationRepeat; i++) {
+            setInterval(vibrate($scope.settings.vibrationDuration), $scope.settings.vibrationDelay);
+        }
+    };
+    var playSound = function (direction) {
+        var audio = document.getElementById("audio");
+        if (direction == "left")
+            $scope.currentAudioSrc($scope.settings.audioSrc.left);
+        else if (direction == "right")
+            $scope.currentAudioSrc($scope.settings.audioSrc.right);
+        audio.play();
+    }
 
 }])
 
@@ -99,11 +123,11 @@ angular.module('warningApp.controllers', [])
         phone: "7165985933",
         photo: "content://com.android.contacts/contacts/5285/photo"
     };
-    
-//    setTimeout(function(){
-//        $scope.getNetworkState();
-//    },3000);
-    
+
+    //    setTimeout(function(){
+    //        $scope.getNetworkState();
+    //    },3000);
+
     $scope.selectContact = function (contact) {
 
         $scope.selectedContact.name = contact.displayName;
@@ -115,7 +139,7 @@ angular.module('warningApp.controllers', [])
     };
 
 
-    $scope.sendSMS = function () {  
+    $scope.sendSMS = function () {
         if (!$scope.settings.isOffline)
             SMS.sendSMS($scope.selectedContact.phone, "Hi", smsSuccess, smsFail);
         else

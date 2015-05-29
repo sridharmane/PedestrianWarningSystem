@@ -39,7 +39,17 @@ angular.module('warningApp.services', [])
                         maxCount: 5,
                     },
                     'smsDelayTime': 2, // in seconds
-                    'isOffline':true
+                    'isOffline':true,
+                    'audioSrc':{
+                    'left':'media/see_left.mp3',
+                    'right':'media/see_right.mp3',
+                    },
+                    'currentAudioSrc':'media/see_left.mp3',
+                    'vibrationEnabled':true,
+                    'soundEnabled':true,
+                    'vibrationDuration':1000,
+                    'vibrationDelay':1000,
+                    'vibrationRepeat':2,
                 };
 
                 return {
