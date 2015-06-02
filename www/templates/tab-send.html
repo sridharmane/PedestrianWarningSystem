@@ -1,0 +1,44 @@
+<ion-view view-title="Send Notifications" name="tab-send">
+
+    <ion-content class="padding">
+        <div class="list card">
+            <div class="item item-divider">Select Contact</div>
+            <div class="">
+                <div class="list">
+                    <a ng-if="!selectedContact" ng-click="pickPhoneContact()" class="item"> Tap to Select Contact</a>
+                    <a ng-if="selectedContact" class="item item-avatar" ng-click="pickPhoneContact()">
+                        <img  ng-src="{{selectedContact.photo}}"/>
+                        <h2 class="inline">{{selectedContact.name}}</h2><h3 class="inline padding-left">{{"("+selectedContact.phone+")"}}</h3>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="list card">
+            <div class="item item-divider">Speed</div>
+            <div class="item item-body">
+                <div class="button-bar" ng-controller="SpeedBtnCtrl">
+                    <a class="button" ng-class="{'button-positive': isActive('slow')}" ng-click="setSpeed('slow')">Slow</a>
+                    <a class="button" ng-class="{'button-positive': isActive('fast')}" ng-click="setSpeed('fast')">Fast</a>
+                    <a class="button" ng-class="{'button-positive': isActive('veryFast')}" ng-click="setSpeed('veryFast')">Very Fast</a>
+                </div>
+            </div>
+        </div>
+        <div class="list card">
+            <div class="item item-divider">Direction</div>
+            <label class="item" ng-bind="direction">{{direction}}</label>
+            <div class="item item-body">
+                <div class="button-bar" ng-controller="DirectionBtnCtrl">
+                    <a class="button icon-left ion-arrow-left-c" ng-class="{'button-positive': isActive('left')}" ng-click="setDirection('left')">Left</a>
+                    <a class="button icon-right ion-arrow-right-c" ng-class="{'button-positive': isActive('right')}" ng-click="setDirection('right')">Right</a>
+                </div>
+            </div>
+        </div>
+        <div class="list">
+                <audio id="audio" ng-src="{{settings.currentAudioSrc}}"></audio>
+                <button class="button icon-left button-full button-positive" ng-disabled="settings.isOffline" 
+                        ng-class="settings.isOffline?'ion-alert-circled':'ion-paper-airplane'" ng-click="sendNotification()">
+                    {{settings.isOffline?"No Network - Cannot Send Notification":"Send Notification"}}
+                </button>
+        </div>
+    </ion-content>
+</ion-view>

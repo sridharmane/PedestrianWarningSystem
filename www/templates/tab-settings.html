@@ -1,0 +1,50 @@
+<ion-view view-title="Settings">
+    <ion-content>
+        <form>
+            <ion-list>
+                <div class="item item-divider">General</div>
+                <label class="item item-select">
+                    <span class="input-label">SMS Delay Time (in Seconds)</span>
+                    <select ng-model="settings.smsDelayTime">
+                        <option>0.5</option>
+                        <option>1</option>
+                        <option>1.5</option>
+                        <option>2</option>
+                    </select>
+                </label>
+                <div class="item item-divider">Notification</div>
+                <ion-toggle ng-model="settings.soundEnabled" toggle-class="toggle-balanced">Sound {{settings.soundEnabled?'Enabled':'Disabled'}}</ion-toggle>
+                <ion-toggle ng-model="settings.vibrationEnabled" toggle-class="toggle-balanced" >Vibration {{settings.vibrationEnabled?'Enabled':'Disabled'}}</ion-toggle>
+                <label class="item item-select" ng-class="{disabled: settings.vibrationEnabled==false}">
+                    <span class="input-label">Vibration Pulse Duration</span>
+                    <select ng-model="settings.vibrationDuration" ng-disabled="!settings.vibrationEnabled">
+                        <option>1000</option>
+                        <option>1500</option>
+                        <option>2000</option>
+                        <option>2500</option>
+                        <option>3000</option>
+                    </select>
+                </label>
+                <label class="item item-select" ng-class="{disabled: settings.vibrationEnabled==false}">
+                    <span class="input-label">Vibration Delay Duration</span>
+                    <select ng-model="settings.vibrationDelay" ng-disabled="!settings.vibrationEnabled">
+                        <option>1000</option>
+                        <option>1500</option>
+                        <option>2000</option>
+                        <option>2500</option>
+                        <option>3000</option>
+                    </select>
+                </label>
+                <label class="item item-select" ng-class="{disabled: settings.vibrationEnabled==false}">
+                    <span class="input-label">Vibration Repaeats</span>
+                    <select ng-model="settings.vibrationRepeat" ng-disabled="!settings.vibrationEnabled">
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                    </select>
+                </label>
+                <label class="item">{{":"+settings.vibrationDuration+":"+settings.vibrationRepeat+":"+settings.vibrationDelay+":"}}</label>
+            </ion-list>
+        </form>
+    </ion-content>
+</ion-view>

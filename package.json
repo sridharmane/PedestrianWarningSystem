@@ -19,7 +19,13 @@
     "cordova-plugin-console",
     "cordova-plugin-whitelist",
     "cordova-plugin-splashscreen",
-    "com.ionic.keyboard"
+    "com.ionic.keyboard",
+    "cordova-plugin-network-information",
+    "cordova-plugin-vibration",
+    "com.rjfun.cordova.sms",
+    "cordova-plugin-contacts"
   ],
-  "cordovaPlatforms": []
+  "cordovaPlatforms": [
+    "android"
+  ]
 }
