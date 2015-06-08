@@ -7,38 +7,48 @@
                 <div class="list">
                     <a ng-if="!selectedContact" ng-click="pickPhoneContact()" class="item"> Tap to Select Contact</a>
                     <a ng-if="selectedContact" class="item item-avatar" ng-click="pickPhoneContact()">
-                        <img  ng-src="{{selectedContact.photo}}"/>
-                        <h2 class="inline">{{selectedContact.name}}</h2><h3 class="inline padding-left">{{"("+selectedContact.phone+")"}}</h3>
+                        <img ng-src="{{selectedContact.photo}}" />
+                        <h2 class="inline">{{selectedContact.name}}</h2>
+                        <h3 class="inline padding-left">{{"("+selectedContact.phone+")"}}</h3>
                     </a>
                 </div>
             </div>
         </div>
         <div class="list card">
-            <div class="item item-divider">Speed</div>
+            <div class="item item-divider">Car Speed</div>
             <div class="item item-body">
-                <div class="button-bar" ng-controller="SpeedBtnCtrl">
-                    <a class="button" ng-class="{'button-positive': isActive('slow')}" ng-click="setSpeed('slow')">Slow</a>
-                    <a class="button" ng-class="{'button-positive': isActive('fast')}" ng-click="setSpeed('fast')">Fast</a>
-                    <a class="button" ng-class="{'button-positive': isActive('veryFast')}" ng-click="setSpeed('veryFast')">Very Fast</a>
+                <div class="button-bar">
+                    <a class="button" ng-class="{'button-positive': isSpeedBtnActive('slow')}" ng-click="setSpeed('slow')">Slow</a>
+                    <a class="button" ng-class="{'button-positive': isSpeedBtnActive('fast')}" ng-click="setSpeed('fast')">Fast</a>
+                    <a class="button" ng-class="{'button-positive': isSpeedBtnActive('veryFast')}" ng-click="setSpeed('veryFast')">Very Fast</a>
                 </div>
             </div>
         </div>
         <div class="list card">
-            <div class="item item-divider">Direction</div>
-            <label class="item" ng-bind="direction">{{direction}}</label>
+            <div class="item item-divider">Car Direction</div>
             <div class="item item-body">
-                <div class="button-bar" ng-controller="DirectionBtnCtrl">
-                    <a class="button icon-left ion-arrow-left-c" ng-class="{'button-positive': isActive('left')}" ng-click="setDirection('left')">Left</a>
-                    <a class="button icon-right ion-arrow-right-c" ng-class="{'button-positive': isActive('right')}" ng-click="setDirection('right')">Right</a>
+                <div class="button-bar">
+                    <a class="button icon-left ion-arrow-left-c" ng-class="{'button-positive': isDirectionBtnActive('left')}" ng-click="setDirection('left')">Left</a>
+                    <a class="button icon-right ion-arrow-right-c" ng-class="{'button-positive': isDirectionBtnActive('right')}" ng-click="setDirection('right')">Right</a>
                 </div>
             </div>
         </div>
         <div class="list">
-                <audio id="audio" ng-src="{{settings.currentAudioSrc}}"></audio>
-                <button class="button icon-left button-full button-positive" ng-disabled="settings.isOffline" 
-                        ng-class="settings.isOffline?'ion-alert-circled':'ion-paper-airplane'" ng-click="sendNotification()">
-                    {{settings.isOffline?"No Network - Cannot Send Notification":"Send Notification"}}
-                </button>
-        </div>
+            <!--                <audio id="audio" ng-src="{{settings.currentAudioSrc}}"></audio>-->
+
+            <div class="list card" ng-show="carSpeed === '' || carDirection === undefined || carSpeed==='' || carSpeed === undefined">
+                <div class="item item-divider">Please select the following :</div>
+                <div class="item">
+                    <span ng-if="selectedContact === undefined || selectedContact ==='' " class="assertive">-> Contact</span>
+                    <span ng-if="carSpeed === undefined || carSpeed === ''" class="assertive"> -> Car Speed</span>
+                    <span ng-if="carDirection === undefined || carDirection === ''" class="assertive"> -> Car Direction</span>
+                </div>
+
+            </div>
+
+            <button class="button icon-left button-full button-positive" ng-hide="carSpeed === '' || carDirection === undefined || carSpeed==='' || carSpeed === undefined" ng-disabled="settings.isOffline" ng-class="settings.isOffline?'ion-alert-circled':'ion-paper-airplane'" ng-click="sendNotification()">
+                {{settings.isOffline?"No Network - Cannot Send Notification":"Send Notification"}}
+            </button>
+            <audio id="audio"></audio>
     </ion-content>
 </ion-view>

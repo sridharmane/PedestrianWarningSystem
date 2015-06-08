@@ -5,14 +5,24 @@
             <ion-toggle ng-model="settings.smsListenerOn" toggle-class="toggle-balanced" ng-change="toggleSmsListener()">SMS Listener {{settings.smsListenerOn}}</ion-toggle>
         </div>
         <div class="list card">
-            <div class="item item-divider">Incoming Alerts</div>
-            <ion-item ng-if="smsList.length === 0" class="item">
+            <div class="item item-divider">Alert received {{sms.timeDifference}} ago</div>
+            <ion-item ng-if="sms.default" class="item">
                 <h2>No alerts received.</h2>
             </ion-item>
-            <ion-item ng-if="smsList.length > 0" ng-repeat="sms in smsList" class="item">
+            <ion-item ng-if="!sms.default" class="item">
                 <h2>{{sms.body}}</h2>
-                <p>Received {{sms.timeDifference}} ago.</p>
+                <div class="row">
+                    <div class="col-50">
+                        <h2>Car Speed:</h2>
+                        <h2>Car Direction:</h2>
+                    </div>
+                    <div class="col-50">
+                    <p>{{sms.body.carSpeed}}</p>
+                    <p>{{sms.body.carDirection}}</p>
+                    </div>
+                </div>
             </ion-item>
+            
             <audio id="audio" ng-src="{{settings.currentAudioSrc}}"></audio>
         </div>
     </ion-content>

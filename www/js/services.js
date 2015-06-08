@@ -38,17 +38,17 @@ angular.module('PreWarning.services', [])
                         indexFrom: 0,
                         maxCount: 5,
                     },
-                    'smsDelayTime': 2, // in seconds
-                    'isOffline':true,
+                    'smsDelayTime': 2000, // in milli seconds
+                    'isOffline':false,
                     'audioSrc':{
                     'left':'media/see_left.mp3',
                     'right':'media/see_right.mp3',
                     },
-                    'currentAudioSrc':'media/see_left.mp3',
+//                    'currentAudioSrc':'',
                     'vibrationEnabled':true,
                     'soundEnabled':true,
                     'vibrationDuration':1000,
-                    'vibrationDelay':1000,
+                    'vibrationDelay':100,
                     'vibrationRepeat':2,
                 };
 

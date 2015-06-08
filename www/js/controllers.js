@@ -1,45 +1,61 @@
 angular.module('PreWarning.controllers', [])
 
+
 .controller('ReceiveCtrl', ['$scope', 'SettingsService', function ($scope, SettingsService) {
 
     $scope.settings = SettingsService.settings;
-    $scope.smsList = [
-        {
-            address: "+17163352691",
-            body: "Hi",
-            date: 1428524327110,
-            date_sent: 1428524338000,
-            read: 0,
-            seen: 0,
-            service_center: "+12404492164",
-            status: 0,
-            timeDifference: "0 hrs : 0 mins : 10 sec",
-            type: 1
-        }
-    ];
-    //    $scope.smsList =[];
+    $scope.sms = {
+        address: "+17163352691",
+        body: {
+            "cs": "fast",
+            "cd": "left",
+            "sdt": 2000,
+            "vp": [2, 1000, 100]
+        },
+        date: 1428524327110,
+        date_sent: 1428524338000,
+        read: 0,
+        seen: 0,
+        service_center: "+12404492164",
+        status: 0,
+        timeDifference: "10 seconds",
+        type: 1,
+        default: false
+    };
 
     $scope.toggleSmsListener = function () {
 
-        // We togle the SMS Listener & SMS Intercepter h-ere
-
         if ($scope.settings.smsListenerOn) {
-            SMS.startWatch(success('Watch Start'), error('startWatch Error'));
-            SMS.enableIntercept(true, success('Intercept Start'), error('Intercept error'));
+            if (SMS) SMS.startWatch(success('Watch Start'), error('startWatch Error'));
+            if (SMS) SMS.enableIntercept(true, success('Intercept Start'), error('Intercept error'));
         } else {
-            SMS.stopWatch(success('Watch End'), error('stopWatch Error'));
-            SMS.enableIntercept(false, success('Intercept Stop'), error('Intercept error'));
+            if (SMS) SMS.stopWatch(success('Watch End'), error('stopWatch Error'));
+            if (SMS) SMS.enableIntercept(false, success('Intercept Stop'), error('Intercept error'));
         }
     };
 
     document.addEventListener('onSMSArrive', function (event) {
+        try {
+            console.log(event.data);
+            smsArrived(event.data);
+        } catch (err) {
+            console.log(err.name);
+            console.log(err.message);
+        }
 
-        var sms = event.data;
-        sms.timeDifference = getTimeDiff(sms.date_sent);
-        $scope.$apply(function () {
-            $scope.smsList.push(sms);
-        });
-        console.log($scope.smsList);
+    });
+
+    var smsArrived = function (sms) {
+
+        $scope.sms = sms;
+        $scope.sms.timeDifference = getTimeDiff(sms.date_sent);
+        $scope.sms.default = false;
+
+
+        //        $scope.$apply(function () {
+        //            $scope.smsList.push(sms);
+        //        });
+        //        console.log($scope.smsList);
         //        SMS.listSMS($scope.settings.filter, function (data) {
         //            console.log(data);
         //            if (data.constructor === Array) {
@@ -54,29 +70,14 @@ angular.module('PreWarning.controllers', [])
         //            console.log('Error' + err);
         //        });
 
-    });
-
-    var showSMS = function (SMS) {
-
     };
-
     var getTimeDiff = function (timestamp) {
 
         var difference = new Date().getTime() - new Date(timestamp).getTime();
 
-        var daysDiff = Math.floor(difference / 1000 / 60 / 60 / 24);
-        difference -= daysDiff * 1000 * 60 * 60 * 24;
-
-        var hoursDiff = Math.floor(difference / 1000 / 60 / 60);
-        difference -= hoursDiff * 1000 * 60 * 60;
-
-        var minutesDiff = Math.floor(difference / 1000 / 60);
-        difference -= minutesDiff * 1000 * 60;
-
         var secondsDiff = Math.floor(difference / 1000);
 
-
-        return hoursDiff + " hrs : " + minutesDiff + " min : " + secondsDiff + " sec";
+        return secondsDiff + " seconds";
     };
 
     var success = function (msg) {
@@ -92,7 +93,7 @@ angular.module('PreWarning.controllers', [])
             playSound(direction);
         if ($scope.settings.vibrationEnabled)
             vibrateWithPattern();
-    }
+    };
 
     var vibrate = function (time) {
         navigator.vibrate(time);
@@ -109,13 +110,15 @@ angular.module('PreWarning.controllers', [])
         else if (direction == "right")
             $scope.currentAudioSrc($scope.settings.audioSrc.right);
         audio.play();
-    }
+    };
 
 }])
 
-.controller('SendCtrl', ['$scope', 'ContactsService', 'SettingsService', '$rootScope', '$cordovaNetwork', function ($scope, ContactsService, SettingsService, $rootScope, $cordovaNetwork) {
+.controller('SendCtrl', ['$scope', 'ContactsService', 'SettingsService', '$rootScope', '$cordovaNetwork', '$cordovaToast', function ($scope, ContactsService, SettingsService, $rootScope, $cordovaNetwork, $cordovaToast) {
 
     $scope.settings = SettingsService.settings;
+
+
 
     //Set SelectedContact to none
     $scope.selectedContact = {
@@ -145,7 +148,7 @@ angular.module('PreWarning.controllers', [])
             playSound(direction);
         if ($scope.settings.vibrationEnabled)
             vibrateWithPattern();
-    }
+    };
 
     var vibrate = function (pattern) {
         navigator.vibrate(pattern);
@@ -161,10 +164,11 @@ angular.module('PreWarning.controllers', [])
     };
     var playSound = function (direction) {
             var audio = document.getElementById("audio");
-            if (direction == "left")
-                $scope.currentAudioSrc = $scope.settings.audioSrc.left;
-            else if (direction == "right")
-                $scope.currentAudioSrc = $scope.settings.audioSrc.right;
+            if (direction === "left") {
+                audio.src = $scope.settings.audioSrc.left;
+            } else if (direction === "right") {
+                audio.src = $scope.settings.audioSrc.right;
+            }
             audio.play();
         }
         /***/
@@ -172,24 +176,39 @@ angular.module('PreWarning.controllers', [])
 
 
     $scope.sendNotification = function () {
-        console.log($scope.getDirection());
-        notifyUser($scope.getDirection());
-        var notificaiton = {
-            "speed": $scope.speed,
-            "direcction": $scope.direcction,
-            "smsDelayTime": $scope.settings.smsDelayTime
+        if (SMS) SMS.setOptions({
+            license: "sridharmane@gmail.com/e1e2c8dcadd8b4ddafdcd1d43b456f47"
+        });
+        console.log("car SPeed :" + $scope.carSpeed + ":");
+        var notifcationString = buildNotification();
+        if (SMS) SMS.sendSMS($scope.selectedContact.phone, notifcationString, smsSuccess, smsFail);
+        $scope.clearSelection();
+    };
+
+    var buildNotification = function () {
+        var vibrationPattern = [$scope.settings.vibrationRepeat,
+                                $scope.settings.vibrationDuration,
+                               $scope.settings.vibrationDelay,
+                               ];
+        var notification = {
+            "cs": $scope.carSpeed,
+            "cd": $scope.carDirection,
+            "sdt": $scope.settings.smsDelayTime,
+            "vp": vibrationPattern
         };
-        //        if (!$scope.settings.isOffline)
-        //            SMS.sendSMS($scope.selectedContact.phone, "Hi", smsSuccess, smsFail);
-        //        else
-        //            console.log("isOffline Cant send Message");
+        console.log(JSON.stringify(notification) + "-len: " + JSON.stringify(notification).length);
+        //        return notification;
+        //        return "looks like this works";
+        return "Hi";
     };
 
     var smsSuccess = function () {
-        console.log("Sent");
+        console.log("Notification Sent");
+        $cordovaToast.showLongCenter("Notification Sent");
     };
     var smsFail = function () {
-        console.log("Sent");
+        console.log("Notification Failed");
+        $cordovaToast.showLongCenter("Notification Failed !!");
     };
     //     window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(fs){
     //            fs.root.getFile("temp.jpg", {create: true, exclusive: false},
@@ -247,31 +266,28 @@ angular.module('PreWarning.controllers', [])
     //        $scope.offlineState = networkState;
     //      });
     //    });
+    $scope.setSpeed = function (speed) {
+        $scope.carSpeed = speed;
+        console.log($scope.carSpeed);
+    };
+    $scope.isSpeedBtnActive = function (type) {
+        return type === $scope.carSpeed;
+    };
+    $scope.setDirection = function (direction) {
+        $scope.carDirection = direction;
+        console.log($scope.carDirection);
+    };
+    $scope.isDirectionBtnActive = function (type) {
+        return type === $scope.carDirection;
+    };
 
+    $scope.clearSelection = function () {
+        $scope.settings.carSpeed = "";
+        $scope.settings.carDirection = "";
+    };
 }])
 
-.controller('SpeedBtnCtrl', function ($scope) {
-        $scope.speed = 'slow';
-        $scope.setSpeed = function (type) {
-            $scope.speed = type;
-        };
-        $scope.isActive = function (type) {
-            return type === $scope.speed;
-        };
-    })
-    .controller('DirectionBtnCtrl', function ($scope) {
-        $scope.direction = 'left';
-        $scope.setDirection = function (type) {
-            $scope.direction = type;
-        };
-        $scope.isActive = function (type) {
-            return type === $scope.direction;
-        };
-    })
-    .controller('SettingsCtrl', function ($scope, $window, $timeout, SettingsService) {
-        $scope.settings = SettingsService.settings;
-        //    $scope.settings.smsDelayTime = 0.5;
-
-
-
-    });
+.controller('SettingsCtrl', ['$scope', 'SettingsService', function ($scope, SettingsService) {
+    $scope.settings = SettingsService.settings;
+    //    $scope.settings.smsDelayTime = 0.5;
+    }]);

@@ -23,7 +23,12 @@
     "cordova-plugin-network-information",
     "cordova-plugin-vibration",
     "com.rjfun.cordova.sms",
-    "cordova-plugin-contacts"
+    "cordova-plugin-contacts",
+    {
+      "locator": "https://github.com/EddyVerbruggen/Toast-PhoneGap-Plugin.git",
+      "id": "nl.x-services.plugins.toast"
+    },
+    "cordova-plugin-sms"
   ],
   "cordovaPlatforms": [
     "android"
