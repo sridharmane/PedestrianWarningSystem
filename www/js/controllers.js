@@ -114,7 +114,7 @@ angular.module('PreWarning.controllers', [])
 
 }])
 
-.controller('SendCtrl', ['$scope', 'ContactsService', 'SettingsService', '$rootScope', '$cordovaNetwork', '$cordovaToast', function ($scope, ContactsService, SettingsService, $rootScope, $cordovaNetwork, $cordovaToast) {
+.controller('SendCtrl', ['$scope', 'ContactsService', 'JPushService', 'SettingsService', '$rootScope', '$cordovaNetwork', '$cordovaToast', '$http', '$sce', function ($scope, ContactsService, JPushService, SettingsService, $rootScope, $cordovaNetwork, $cordovaToast, $http, $sce) {
 
     $scope.settings = SettingsService.settings;
 
@@ -163,25 +163,32 @@ angular.module('PreWarning.controllers', [])
         vibrate(pattern);
     };
     var playSound = function (direction) {
-            var audio = document.getElementById("audio");
-            if (direction === "left") {
-                audio.src = $scope.settings.audioSrc.left;
-            } else if (direction === "right") {
-                audio.src = $scope.settings.audioSrc.right;
-            }
-            audio.play();
+        var audio = document.getElementById("audio");
+        if (direction === "left") {
+            audio.src = $scope.settings.audioSrc.left;
+        } else if (direction === "right") {
+            audio.src = $scope.settings.audioSrc.right;
         }
-        /***/
+        audio.play();
+    };
+    /***/
 
 
 
     $scope.sendNotification = function () {
-        if (SMS) SMS.setOptions({
-            license: "sridharmane@gmail.com/e1e2c8dcadd8b4ddafdcd1d43b456f47"
-        });
-        console.log("car SPeed :" + $scope.carSpeed + ":");
-        var notifcationString = buildNotification();
-        if (SMS) SMS.sendSMS($scope.selectedContact.phone, notifcationString, smsSuccess, smsFail);
+        //        if (SMS) SMS.setOptions({
+        //            license: "sridharmane@gmail.com/e1e2c8dcadd8b4ddafdcd1d43b456f47"
+        //        });
+        //        console.log("car SPeed :" + $scope.carSpeed + ":");
+        //        var notifcationString = buildNotification();
+        //        if (SMS) SMS.sendSMS($scope.selectedContact.phone, notifcationString, smsSuccess, smsFail);
+        /*
+        Testing JPush Service
+        */
+                JPushService.sendMessage();
+
+       
+
         $scope.clearSelection();
     };
 
@@ -285,7 +292,7 @@ angular.module('PreWarning.controllers', [])
         $scope.settings.carSpeed = "";
         $scope.settings.carDirection = "";
     };
-}])
+            }])
 
 .controller('SettingsCtrl', ['$scope', 'SettingsService', function ($scope, SettingsService) {
     $scope.settings = SettingsService.settings;

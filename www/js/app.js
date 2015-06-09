@@ -44,7 +44,7 @@ angular.module('PreWarning', ['ionic', 'PreWarning.controllers', 'PreWarning.ser
 
 })
 
-.config(function ($stateProvider, $urlRouterProvider, $compileProvider) {
+.config(function ($stateProvider, $urlRouterProvider, $compileProvider,$sceDelegateProvider) {
 
     // Ionic uses AngularUI Router which uses the concept of states
     // Learn more here: https://github.com/angular-ui/ui-router
@@ -95,4 +95,9 @@ angular.module('PreWarning', ['ionic', 'PreWarning.controllers', 'PreWarning.ser
 
     $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|content):|data:image\//);
 
+//    $sceDelegateProvider.resourceUrlWhitelist([
+//           // Allow same origin resource loads.
+//           'self',
+//           // Allow loading from our assets domain. * and**.
+//           'http=s://api.jpush.cn/v3/push']);
 });
