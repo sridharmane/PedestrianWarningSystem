@@ -3,6 +3,12 @@
         <form>
             <ion-list>
                 <div class="item item-divider">General</div>
+
+                <label class="item" ng-click="refreshContactsList()">
+                    <h2>Refresh Contacts List</h2>
+                    <p ng-model="Contacts.lastRefreshed">Last Refreshed : {{lastRefreshed | date:'medium'}}</p>
+                </label>
+
                 <label class="item item-select">
                     <span class="input-label">SMS Delay Time (in Seconds)</span>
                     <select ng-model="settings.smsDelayTime">
@@ -14,7 +20,7 @@
                 </label>
                 <div class="item item-divider">Notification</div>
                 <ion-toggle ng-model="settings.soundEnabled" toggle-class="toggle-balanced">Sound {{settings.soundEnabled?'Enabled':'Disabled'}}</ion-toggle>
-                <ion-toggle ng-model="settings.vibrationEnabled" toggle-class="toggle-balanced" >Vibration {{settings.vibrationEnabled?'Enabled':'Disabled'}}</ion-toggle>
+                <ion-toggle ng-model="settings.vibrationEnabled" toggle-class="toggle-balanced">Vibration {{settings.vibrationEnabled?'Enabled':'Disabled'}}</ion-toggle>
                 <label class="item item-select" ng-class="{disabled: settings.vibrationEnabled==false}">
                     <span class="input-label">Vibration Pulse Duration</span>
                     <select ng-model="settings.vibrationDuration" ng-disabled="!settings.vibrationEnabled">

@@ -23,54 +23,9 @@ angular.module('PreWarning.controllers', [])
         default: false
     };
 
-    $scope.toggleSmsListener = function () {
-
-        if ($scope.settings.smsListenerOn) {
-            if (SMS) SMS.startWatch(success('Watch Start'), error('startWatch Error'));
-            if (SMS) SMS.enableIntercept(true, success('Intercept Start'), error('Intercept error'));
-        } else {
-            if (SMS) SMS.stopWatch(success('Watch End'), error('stopWatch Error'));
-            if (SMS) SMS.enableIntercept(false, success('Intercept Stop'), error('Intercept error'));
-        }
-    };
-
-    document.addEventListener('onSMSArrive', function (event) {
-        try {
-            console.log(event.data);
-            smsArrived(event.data);
-        } catch (err) {
-            console.log(err.name);
-            console.log(err.message);
-        }
-
-    });
-
-    var smsArrived = function (sms) {
-
-        $scope.sms = sms;
-        $scope.sms.timeDifference = getTimeDiff(sms.date_sent);
-        $scope.sms.default = false;
 
 
-        //        $scope.$apply(function () {
-        //            $scope.smsList.push(sms);
-        //        });
-        //        console.log($scope.smsList);
-        //        SMS.listSMS($scope.settings.filter, function (data) {
-        //            console.log(data);
-        //            if (data.constructor === Array) {
-        //                for ( var i=0;i < data.length;i++) {
-        //                    var sms = data[i];
-        //                    sms.timeDifference = getTimeDiff(sms.date_sent);
-        //                    $scope.smsList.push(sms);
-        //                }
-        //            }
 
-        //        }, function (err) {
-        //            console.log('Error' + err);
-        //        });
-
-    };
     var getTimeDiff = function (timestamp) {
 
         var difference = new Date().getTime() - new Date(timestamp).getTime();
@@ -114,17 +69,30 @@ angular.module('PreWarning.controllers', [])
 
 }])
 
-.controller('SendCtrl', ['$scope', 'ContactsService', 'JPushService', 'SettingsService', '$rootScope', '$cordovaNetwork', '$cordovaToast', '$http', '$sce', function ($scope, ContactsService, JPushService, SettingsService, $rootScope, $cordovaNetwork, $cordovaToast, $http, $sce) {
+.controller('SendCtrl', ['$scope', 'ParseService', 'SettingsService','Contacts', '$cordovaNetwork', '$cordovaToast', '$http', '$sce', '$ionicModal', function ($scope, ParseService, SettingsService,Contacts, $cordovaNetwork, $cordovaToast, $http, $sce, $ionicModal) {
 
     $scope.settings = SettingsService.settings;
-
-
+    $scope.contacts = Contacts.list;
+    $scope.lastRefreshed = Contacts.lastRefreshed;
+    $ionicModal.fromTemplateUrl('templates/contacts-list.html', {
+        scope: $scope,
+        animation: 'slide-in-up',
+//        controller: 'SendCtrl'
+    }).then(function (modal) {
+        $scope.modal = modal;
+    });
+    $scope.showContacts = function () {
+        $scope.modal.show();
+        if(Contacts.lastRefreshed === "Never")
+            ParseService.refreshContacts();
+    };
+    $scope.hideContacts = function () {
+        $scope.modal.hide();
+    };
 
     //Set SelectedContact to none
     $scope.selectedContact = {
-        name: "Sridhar Mane",
-        phone: "7165985933",
-        photo: "content://com.android.contacts/contacts/5285/photo"
+        id: ""
     };
 
     //    setTimeout(function(){
@@ -182,14 +150,19 @@ angular.module('PreWarning.controllers', [])
         //        console.log("car SPeed :" + $scope.carSpeed + ":");
         //        var notifcationString = buildNotification();
         //        if (SMS) SMS.sendSMS($scope.selectedContact.phone, notifcationString, smsSuccess, smsFail);
-        /*
-        Testing JPush Service
-        */
-                JPushService.sendMessage();
 
-       
+        //                ContactsService.createContact("Sridhar","Mane");
+        ParseService.getAll();
+
+
 
         $scope.clearSelection();
+    };
+    $scope.savePerson = function (fname, lname) {
+        ParseService.savePerson(fname, lname);
+    };
+    $scope.getPeople = function (params) {
+        ParseService.getPeople(params);
     };
 
     var buildNotification = function () {
@@ -294,7 +267,13 @@ angular.module('PreWarning.controllers', [])
     };
             }])
 
-.controller('SettingsCtrl', ['$scope', 'SettingsService', function ($scope, SettingsService) {
+.controller('SettingsCtrl', ['$scope', 'SettingsService', 'ParseService','Contacts', function ($scope, SettingsService, ParseService,Contacts) {
     $scope.settings = SettingsService.settings;
+    $scope.refreshContacts = ParseService.refreshContacts();
+    $scope.lastRefreshed = Contacts.lastRefreshed;
+    $scope.refreshContactsList = function () {
+        console.log("Refreshing");
+        ParseService.refreshContacts();
+    };
     //    $scope.settings.smsDelayTime = 0.5;
     }]);

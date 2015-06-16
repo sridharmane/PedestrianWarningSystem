@@ -22,7 +22,6 @@
     "com.ionic.keyboard",
     "cordova-plugin-network-information",
     "cordova-plugin-vibration",
-    "com.rjfun.cordova.sms",
     "cordova-plugin-contacts",
     {
       "locator": "https://github.com/EddyVerbruggen/Toast-PhoneGap-Plugin.git",

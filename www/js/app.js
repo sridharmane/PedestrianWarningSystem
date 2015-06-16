@@ -2,7 +2,7 @@
 
 angular.module('PreWarning', ['ionic', 'PreWarning.controllers', 'PreWarning.services', 'ngCordova'])
 
-.run(function ($ionicPlatform, SettingsService) {
+.run(function ($ionicPlatform, SettingsService,ParseService) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -20,24 +20,36 @@ angular.module('PreWarning', ['ionic', 'PreWarning.controllers', 'PreWarning.ser
         SettingsService.settings.appTest = true;
 
         /**
+            Initialize Parse Service
+        */
+        ParseService.init();
+        
+        /**
         Check Network Status
         **/
 
 
-        document.addEventListener("offline", isOffline, false);
-        document.addEventListener("online", isOnline, false);
-
-
-
-        function isOffline() {
-            SettingsService.setOfflineStatus(true);
-            console.log("event:offline");
-        }
-
-        function isOnline() {
-            SettingsService.setOfflineStatus(false);
-            console.log("event:online");
-        }
+//        document.addEventListener("offline", isOffline, false);
+//        document.addEventListener("online", isOnline, false);
+//
+//
+//
+//        function isOffline() {
+//            SettingsService.setOfflineStatus(true);
+//            console.log("event:offline");
+//        }
+//
+//        function isOnline() {
+//            /*
+//            *    Init Baidu Push Service
+//            */
+//            fastgoPushNotification.init(BaiduPushService.apiKey);
+//            
+//            SettingsService.setOfflineStatus(false);
+//            console.log("event:online");
+//        }
+        
+        
 
     });
 

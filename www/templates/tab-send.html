@@ -5,11 +5,9 @@
             <div class="item item-divider">Select Contact</div>
             <div class="">
                 <div class="list">
-                    <a ng-if="!selectedContact" ng-click="pickPhoneContact()" class="item"> Tap to Select Contact</a>
-                    <a ng-if="selectedContact" class="item item-avatar" ng-click="pickPhoneContact()">
-                        <img ng-src="{{selectedContact.photo}}" />
-                        <h2 class="inline">{{selectedContact.name}}</h2>
-                        <h3 class="inline padding-left">{{"("+selectedContact.phone+")"}}</h3>
+                    <a ng-if="!selectedContact.firstName" ng-click="showContacts()" class="item"> Tap to Select Contact</a>
+                    <a ng-if="selectedContact.firstName" class="item" ng-click="showContacts()">
+                        <h2 class="inline">{{selectedContact.firstName}}</h2>
                     </a>
                 </div>
             </div>
