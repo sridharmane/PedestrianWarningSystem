@@ -1,0 +1,28 @@
+<ion-view view-title="Pre Warnint System" view-name="start">
+    <ion-content class="padding">
+        <div class="list card" >
+            <ion-item>
+                <button class="button button-block button-positive" ng-click="login()">
+                    Login
+                </button>
+            </ion-item>
+            <ion-item>
+                <button class="button button-block button-positive" ng-click="signUp()">
+                    Sign Up
+                </button>
+            </ion-item>
+        </div>
+
+        <div class="list card">
+            <div class="item item-divider">
+                Current User
+            </div>
+            <div class="item item-body">
+                <p>Username :</p>
+                <h2>{{currentUser.username}}</h2>
+                <p>Name :</p>
+                <h2>{{currentUser.firstName +" "+currentUser.lastName}}</h2>
+            </div>
+        </div>
+    </ion-content>
+</ion-view>

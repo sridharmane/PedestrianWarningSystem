@@ -10,7 +10,23 @@
     <content src="index.html" />
     <access origin="*" />
     <access origin="*content*" />
-    <access origin="https://api.jpush.cn/v3/push/*" />
+    <allow-navigation href="http://*/*" />
+    <allow-navigation href="https://*/*" />
+    <allow-navigation href="*://*.parse.com/*" />
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" />
+    <!-- Allow requests to foo.com -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' parse.com" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' google.com" />
+
+    <!-- Enable all requests, inline styles, and eval() -->
+    <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'" />
+    <!-- Allow XHRs via https only -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:" />
+
+<!-- Allow iframe to https://cordova.apache.org/ -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src 'self' https://cordova.apache.org" />
+
     <preference name="webviewbounce" value="false" />
     <preference name="UIWebViewBounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />

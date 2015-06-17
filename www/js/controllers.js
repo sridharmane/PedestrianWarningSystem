@@ -1,5 +1,77 @@
 angular.module('PreWarning.controllers', [])
+    .controller('StartCtrl', ['$scope', 'ParseService', '$ionicModal', function ($scope, ParseService, $ionicModal) {
+        $scope.loginData = {
+            username: '',
+            password: '',
+            firstName: '',
+            lastName: '',
+            email: '',
+            groups: [],
+            pass: ''
+        };
+        $scope.currentUser = function(){ 
+            return ParseService.getCurrentUser();
+                                       };
 
+        //Login Modal
+        $ionicModal.fromTemplateUrl('templates/login.html', {
+            scope: $scope,
+            animation: 'slide-in-up',
+        }).then(function (modal) {
+            $scope.modalLogin = modal;
+        });
+        $scope.login = function () {
+            $scope.modalLogin.show();
+        };
+        $scope.hideLogin = function () {
+            $scope.modalLogin.hide();
+        };
+        $scope.doLogin = function () {
+            var promise = ParseService.login($scope.loginData.username, $scope.loginData.password)
+            .then(function (user) {
+                if (user) {
+                    console.log(user);
+                    $scope.hideLogin();
+                }
+            }, function (error) {
+                // promise rejected, could log the error with: console.log('error', error);
+                console.log(error);
+            });
+        };
+
+        //Sign Up Modal
+        $ionicModal.fromTemplateUrl('templates/sign-up.html', {
+            scope: $scope,
+            animation: 'slide-in-up',
+        }).then(function (modal) {
+            $scope.modalSignUp = modal;
+        });
+        $scope.signUp = function () {
+            $scope.modalSignUp.show();
+        };
+        $scope.hideSignUp = function () {
+            $scope.modalSignUp.hide();
+        };
+        $scope.doSignUp = function () {
+            //params username, password, firstName, lastName, email, groups
+            var promise = ParseService.signUp($scope.loginData.username,
+                    $scope.loginData.password,
+                    $scope.loginData.firstName,
+                    $scope.loginData.lastName,
+                    $scope.loginData.email,
+                    $scope.loginData.groups)
+                .then(function (user) {
+                    if (user) {
+                        console.log(user);
+                        $scope.hideSignUp();
+                    }
+                }, function (error) {
+                    // promise rejected, could log the error with: console.log('error', error);
+                    console.log(error);
+                });
+        };
+
+}])
 
 .controller('ReceiveCtrl', ['$scope', 'SettingsService', function ($scope, SettingsService) {
 
@@ -69,35 +141,33 @@ angular.module('PreWarning.controllers', [])
 
 }])
 
-.controller('SendCtrl', ['$scope', 'ParseService', 'SettingsService','Contacts', '$cordovaNetwork', '$cordovaToast', '$http', '$sce', '$ionicModal', function ($scope, ParseService, SettingsService,Contacts, $cordovaNetwork, $cordovaToast, $http, $sce, $ionicModal) {
+.controller('SendCtrl', ['$scope', 'ParseService', 'SettingsService', 'Contacts', '$cordovaNetwork', '$cordovaToast', '$http', '$sce', '$ionicModal', function ($scope, ParseService, SettingsService, Contacts, $cordovaNetwork, $cordovaToast, $http, $sce, $ionicModal) {
 
     $scope.settings = SettingsService.settings;
     $scope.contacts = Contacts.list;
     $scope.lastRefreshed = Contacts.lastRefreshed;
+
     $ionicModal.fromTemplateUrl('templates/contacts-list.html', {
         scope: $scope,
         animation: 'slide-in-up',
-//        controller: 'SendCtrl'
+        //        controller: 'SendCtrl'
     }).then(function (modal) {
-        $scope.modal = modal;
+        $scope.modalContacts = modal;
     });
     $scope.showContacts = function () {
-        $scope.modal.show();
-        if(Contacts.lastRefreshed === "Never")
-            ParseService.refreshContacts();
+        $scope.modalContacts.show();
+        if (Contacts.lastRefreshed === "Never")
+            ParseService.refreshContactsList();
     };
     $scope.hideContacts = function () {
-        $scope.modal.hide();
+        $scope.modalContacts.hide();
     };
+
 
     //Set SelectedContact to none
     $scope.selectedContact = {
         id: ""
     };
-
-    //    setTimeout(function(){
-    //        $scope.getNetworkState();
-    //    },3000);
 
     $scope.selectContact = function (contact) {
 
@@ -152,11 +222,7 @@ angular.module('PreWarning.controllers', [])
         //        if (SMS) SMS.sendSMS($scope.selectedContact.phone, notifcationString, smsSuccess, smsFail);
 
         //                ContactsService.createContact("Sridhar","Mane");
-        ParseService.getAll();
-
-
-
-        $scope.clearSelection();
+        //        ParseService.getAll();        $scope.clearSelection();
     };
     $scope.savePerson = function (fname, lname) {
         ParseService.savePerson(fname, lname);
@@ -218,20 +284,7 @@ angular.module('PreWarning.controllers', [])
     //        }, null);
 
 
-    $scope.pickPhoneContact = function () {
-        console.log('This works');
 
-        console.log(ContactsService);
-        ContactsService.pickContact().then(
-            function (contact) {
-                $scope.selectContact(contact);
-            },
-            function (failure) {
-                console.log("Failed to pick a contact");
-            }
-        );
-
-    };
     //    $scope.isOnline = $cordovaNetwork.isOnline();
     //  // listen for Online event1
     //     document.addEventListener('$cordovaNetwork:online', function(event, networkState){
@@ -246,6 +299,9 @@ angular.module('PreWarning.controllers', [])
     //        $scope.offlineState = networkState;
     //      });
     //    });
+
+
+
     $scope.setSpeed = function (speed) {
         $scope.carSpeed = speed;
         console.log($scope.carSpeed);
@@ -267,13 +323,12 @@ angular.module('PreWarning.controllers', [])
     };
             }])
 
-.controller('SettingsCtrl', ['$scope', 'SettingsService', 'ParseService','Contacts', function ($scope, SettingsService, ParseService,Contacts) {
+
+.controller('SettingsCtrl', ['$scope', 'SettingsService', 'ParseService', 'Contacts', function ($scope, SettingsService, ParseService, Contacts) {
     $scope.settings = SettingsService.settings;
-    $scope.refreshContacts = ParseService.refreshContacts();
     $scope.lastRefreshed = Contacts.lastRefreshed;
     $scope.refreshContactsList = function () {
-        console.log("Refreshing");
-        ParseService.refreshContacts();
+        ParseService.refreshContactsList();
     };
     //    $scope.settings.smsDelayTime = 0.5;
     }]);
