@@ -1,0 +1,25 @@
+<ion-view view-title="Account Manager" view-name="account" ng-init="getCurrentUser()">
+    <ion-content class="padding">
+        <div class="list card" ng-show="currentUser.username">
+            <div class="item item-divider item-button-right">
+                Current User
+            </div>
+            <div class="item item-body">
+                <h2>{{currentUser.firstName +" "+ currentUser.lastName +" ("+currentUser.username+")"}}</h2>
+                <p>{{currentUser.email}}</p>
+            </div>
+            <a class="item button button-block button-assertive icon-left ion-log-out" ng-click="logout()">Logout</a>
+        </div>
+        <div class="list card">
+            <div class="item item-divider item-button-right">
+                New User
+            </div>
+                <button class="item button button-block button-positive icon-left ion-log-in" ng-click="login()">
+                    Login
+                </button>
+                <button class="item button button-block button-positive icon-left ion-ios-personadd" ng-click="signUp()">
+                    Sign Up
+                </button>
+        </div>
+    </ion-content>
+</ion-view>

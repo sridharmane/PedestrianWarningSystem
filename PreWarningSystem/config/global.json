@@ -1,0 +1,17 @@
+{
+  "global": {
+    "parseVersion": "1.4.2"
+  },
+  "applications": {
+    "Pre Warning System": {
+      "applicationId": "xT5AKbQJvofdDgjUBzJhFPgTeuPZ97ux854Biy31",
+      "masterKey": "cvbAsIVOjkxWu8odwoLO7X8SVA5XKIfNOpL3pKQW"
+    },
+    "PreWarningSystem": {
+      "link": "Pre Warning System"
+    },
+    "_default": {
+      "link": "Pre Warning System"
+    }
+  }
+}

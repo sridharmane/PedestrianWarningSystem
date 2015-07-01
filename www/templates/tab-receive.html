@@ -1,28 +1,44 @@
 <ion-view view-title="Receive Notifications" view-name="recieve">
     <ion-content class="padding">
 
-        <div class="list card">
-            <ion-toggle ng-model="settings.smsListenerOn" toggle-class="toggle-balanced" ng-change="toggleSmsListener()">SMS Listener {{settings.smsListenerOn}}</ion-toggle>
+        <div class="list card" ng-show="settings.backgroundModeEnabled">
+            <div class="item item-divider item-icon-right">
+                <i class="icon ion-checkmark-circled balanced"></i>
+                Background Notifications Enabled
+            </div>
+            <div class="item item-body">
+                <i>Notifications will play in Background</i>
+            </div>
+        </div>
+        <div class="list card" ng-show="!settings.backgroundModeEnabled">
+            <div class="item item-divider item-icon-left">
+                <i class="icon ion-alert-circled assertive"></i>
+                Background Notifications Disabled
+            </div>
+            <div class="item item-body">
+                <i class="assertive">Notifications will NOT play in Background. Enable Background mode in Settings Tab</i>
+            </div>
         </div>
         <div class="list card">
-            <div class="item item-divider">Alert received {{sms.timeDifference}} ago</div>
-            <ion-item ng-if="sms.default" class="item">
+            <div class="item item-divider item-icon-right">
+                <button class="button button-icon icon ion-refresh positive" ng-click="getLastPush()"></button>
+                Last alert received {{lastPush.timeDifference/1000}}s ago</div>
+            <ion-item ng-show="!lastPush.timeSent" class="item">
                 <h2>No alerts received.</h2>
             </ion-item>
-            <ion-item ng-if="!sms.default" class="item">
-                <h2>{{sms.body}}</h2>
+            <ion-item ng-show="lastPush.timeSent" class="item">
                 <div class="row">
                     <div class="col-50">
                         <h2>Car Speed:</h2>
                         <h2>Car Direction:</h2>
                     </div>
                     <div class="col-50">
-                    <p>{{sms.body.carSpeed}}</p>
-                    <p>{{sms.body.carDirection}}</p>
+                        <p>{{lastPush.notification.carSpeed}}</p>
+                        <p>{{lastPush.notification.carDirection}}</p>
                     </div>
                 </div>
             </ion-item>
-            
+
             <audio id="audio" ng-src="{{settings.currentAudioSrc}}"></audio>
         </div>
     </ion-content>

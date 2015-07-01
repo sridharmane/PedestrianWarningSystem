@@ -1,5 +1,5 @@
 angular.module('PreWarning.controllers', [])
-    .controller('StartCtrl', ['$scope', 'ParseService', '$ionicModal', function ($scope, ParseService, $ionicModal) {
+    .controller('AccountCtrl', ['$scope', 'ParseService', '$ionicModal', '$localstorage', function ($scope, ParseService, $ionicModal, $localstorage) {
         $scope.loginData = {
             username: '',
             password: '',
@@ -7,11 +7,38 @@ angular.module('PreWarning.controllers', [])
             lastName: '',
             email: '',
             groups: [],
-            pass: ''
+            pass: '',
+            channel1: false,
+            channel2: false,
+            channel3: false,
         };
-        $scope.currentUser = function(){ 
-            return ParseService.getCurrentUser();
-                                       };
+        $scope.currentUser = "";
+        $scope.saveCurrentUser = function (user) {
+            console.log("Saving user with username:" + user.username);
+            $scope.currentUser = user;
+            $localstorage.setObject('currentUser', user);
+        };
+        $scope.getCurrentUser = function () {
+            if ($scope.currentUser.username) {
+                console.log("CurrentUser already present");
+            } else {
+                if ($localstorage.getObject('currentUser')) {
+                    $scope.currentUser = $localstorage.getObject('currentUser');
+                    console.log("Current User: " + $scope.currentUser.username);
+                } else {
+                    console.log("No user found in loca storage, checking parse server.");
+                    var currentUser = ParseService.getCurrentUser();
+                    if (currentUser) {
+                        console.log("User found on Parse server.");
+                        console.log(JSON.stringify(currentUser));
+                        $scope.saveCurrentUser(currentUser);
+                    } else {
+                        console.log("No user found in loca storage, Login.");
+                        $scope.login();
+                    }
+                }
+            }
+        };
 
         //Login Modal
         $ionicModal.fromTemplateUrl('templates/login.html', {
@@ -23,20 +50,28 @@ angular.module('PreWarning.controllers', [])
         $scope.login = function () {
             $scope.modalLogin.show();
         };
+        $scope.logout = function () {
+            ParseService.logout();
+            $localstorage.set("currentUser", "");
+            $scope.currentUser = "";
+        };
         $scope.hideLogin = function () {
             $scope.modalLogin.hide();
         };
         $scope.doLogin = function () {
             var promise = ParseService.login($scope.loginData.username, $scope.loginData.password)
-            .then(function (user) {
-                if (user) {
-                    console.log(user);
-                    $scope.hideLogin();
-                }
-            }, function (error) {
-                // promise rejected, could log the error with: console.log('error', error);
-                console.log(error);
-            });
+                .then(function (user) {
+                    if (user) {
+                        console.log("doLogin: Returned from Parse: " + JSON.stringify(user));
+                        user = JSON.parse(JSON.stringify(user));
+                        $scope.saveCurrentUser(user);
+                        ParseService.updateUsername(user.username, $localstorage.get('installationId', ''));
+                        $scope.hideLogin();
+                    }
+                }, function (error) {
+                    // promise rejected, could log the error with: console.log('error', error);
+                    console.log(error);
+                });
         };
 
         //Sign Up Modal
@@ -61,9 +96,11 @@ angular.module('PreWarning.controllers', [])
                     $scope.loginData.email,
                     $scope.loginData.groups)
                 .then(function (user) {
-                    if (user) {
-                        console.log(user);
+                    if (user.username) {
+                        $scope.saveCurrentUser(user);
                         $scope.hideSignUp();
+                        //Update the username corresponding to the installation.
+                        ParseService.updateUsername(user.username, $localstorage.get('installationId', ''));
                     }
                 }, function (error) {
                     // promise rejected, could log the error with: console.log('error', error);
@@ -73,88 +110,42 @@ angular.module('PreWarning.controllers', [])
 
 }])
 
-.controller('ReceiveCtrl', ['$scope', 'SettingsService', function ($scope, SettingsService) {
+.controller('ReceiveCtrl', ['$scope', 'SettingsService', 'NotifyService', function ($scope, SettingsService, NotifyService) {
 
     $scope.settings = SettingsService.settings;
-    $scope.sms = {
-        address: "+17163352691",
-        body: {
-            "cs": "fast",
-            "cd": "left",
-            "sdt": 2000,
-            "vp": [2, 1000, 100]
-        },
-        date: 1428524327110,
-        date_sent: 1428524338000,
-        read: 0,
-        seen: 0,
-        service_center: "+12404492164",
-        status: 0,
-        timeDifference: "10 seconds",
-        type: 1,
-        default: false
+    $scope.lastPush =NotifyService.lastPush;
+    $scope.getLastPush = function(){
+        $scope.lastPush = NotifyService.getLastPush();
+        console.log("lastPush: "+JSON.stringify($scope.lastPush));
     };
-
-
-
-
-    var getTimeDiff = function (timestamp) {
-
-        var difference = new Date().getTime() - new Date(timestamp).getTime();
-
-        var secondsDiff = Math.floor(difference / 1000);
-
-        return secondsDiff + " seconds";
-    };
-
-    var success = function (msg) {
-        console.log(msg);
-    };
-
-    var error = function (error) {
-        console.log(error);
-    };
-
-    var notifyUser = function (direction) {
-        if ($scope.settings.soundEnabled)
-            playSound(direction);
-        if ($scope.settings.vibrationEnabled)
-            vibrateWithPattern();
-    };
-
-    var vibrate = function (time) {
-        navigator.vibrate(time);
-    };
-    var vibrateWithPattern = function () {
-        for (var i = 0; i < $scope.settings.vibrationRepeat; i++) {
-            setInterval(vibrate($scope.settings.vibrationDuration), $scope.settings.vibrationDelay);
-        }
-    };
-    var playSound = function (direction) {
-        var audio = document.getElementById("audio");
-        if (direction == "left")
-            $scope.currentAudioSrc($scope.settings.audioSrc.left);
-        else if (direction == "right")
-            $scope.currentAudioSrc($scope.settings.audioSrc.right);
-        audio.play();
-    };
-
 }])
 
 .controller('SendCtrl', ['$scope', 'ParseService', 'SettingsService', 'Contacts', '$cordovaNetwork', '$cordovaToast', '$http', '$sce', '$ionicModal', function ($scope, ParseService, SettingsService, Contacts, $cordovaNetwork, $cordovaToast, $http, $sce, $ionicModal) {
 
     $scope.settings = SettingsService.settings;
-    $scope.contacts = Contacts.list;
     $scope.lastRefreshed = Contacts.lastRefreshed;
+    var baseUrl = "https://api.parse.com/1/";
+    var pushUrl = "push";
+
+    $scope.contacts = [];
+    $scope.channels = [];
+    $scope.selected = {
+        contact: {},
+        channel: {},
+    };
 
     $ionicModal.fromTemplateUrl('templates/contacts-list.html', {
         scope: $scope,
         animation: 'slide-in-up',
         //        controller: 'SendCtrl'
     }).then(function (modal) {
+        $scope.getContacts();
+        $scope.getChannels();
         $scope.modalContacts = modal;
     });
     $scope.showContacts = function () {
+        $scope.getContacts();
+        $scope.getChannels();
         $scope.modalContacts.show();
         if (Contacts.lastRefreshed === "Never")
             ParseService.refreshContactsList();
@@ -163,20 +154,39 @@ angular.module('PreWarning.controllers', [])
         $scope.modalContacts.hide();
     };
 
-
-    //Set SelectedContact to none
-    $scope.selectedContact = {
-        id: ""
+    $scope.selectContact = function (contact) {
+        $scope.selected.contact = contact;
+        $scope.hideContacts();
+    };
+    $scope.selectChannel = function (channel) {
+        $scope.selected.channel = channel;
+        $scope.hideContacts();
+    };
+    $scope.clearSelectedChannel = function () {
+        $scope.selected.channel = {};
+    };
+    $scope.clearSelectedContact = function () {
+        console.log("Clearing Contact");
+        $scope.selected.contact = {};
+        console.log($scope.selected.contact);
     };
 
-    $scope.selectContact = function (contact) {
 
-        $scope.selectedContact.name = contact.displayName;
-        $scope.selectedContact.phone = contact.phones[0].value;
-
-        $scope.selectedContact.photo = contact.photos[0].value;
-        console.log($scope.selectedContact);
-
+    $scope.getContacts = function () {
+        if ($scope.contacts.length > 0) {} else {
+            $scope.contacts = ParseService.getContacts();
+        }
+    };
+    $scope.getChannels = function () {
+        if ($scope.channels.length > 0) {} else {
+            $scope.channels = ParseService.getChannels();
+        }
+    };
+    $scope.getContactsLastRefreshed = function () {
+        return Contacts.contactsLastRefreshed;
+    };
+    $scope.getChannelsLastRefreshed = function () {
+        return Contacts.channelsLastRefreshed;
     };
 
 
@@ -209,20 +219,53 @@ angular.module('PreWarning.controllers', [])
         }
         audio.play();
     };
-    /***/
 
+    /**
+        Returns a push object with
+    */
 
+    var _buildPush = function () {
 
-    $scope.sendNotification = function () {
-        //        if (SMS) SMS.setOptions({
-        //            license: "sridharmane@gmail.com/e1e2c8dcadd8b4ddafdcd1d43b456f47"
-        //        });
-        //        console.log("car SPeed :" + $scope.carSpeed + ":");
-        //        var notifcationString = buildNotification();
-        //        if (SMS) SMS.sendSMS($scope.selectedContact.phone, notifcationString, smsSuccess, smsFail);
+        /*
+        Build Vibration Pattern
+        [NumberOfTimesToRepeat,DurationOfEachVibration,DelayBetweenVibrations]
+        */
+        var vibrationPattern = [$scope.settings.vibrationRepeat, $scope.settings.vibrationDuration, $scope.settings.vibrationDelay];
 
-        //                ContactsService.createContact("Sridhar","Mane");
-        //        ParseService.getAll();        $scope.clearSelection();
+        var push = {};
+
+        if ($scope.selected.channel) {
+            push.channel = $scope.selected.channel;
+        } else {
+            push.channel = "";
+        }
+        if ($scope.selected.contact) {
+
+            push.contact = {
+                "username": $scope.selected.contact.username
+            };
+        } else {
+            push.contact = "";
+        }
+        push.notification = {
+            "carSpeed": $scope.carSpeed,
+            "carDirection": $scope.carDirection,
+        };
+        push.settings = {
+            "delayTime": $scope.settings.delayTime,
+            "soundEnabled": $scope.settings.soundEnabled,
+            "vibrationEnabled": $scope.settings.vibrationEnabled,
+            "vibrationPattern": vibrationPattern
+        };
+        push.timeSent = Date.now();
+        console.log("push sent at:" +push.timeSent);
+        return push;
+    };
+
+    $scope.sendPush = function () {
+        var push = _buildPush();
+        console.log("Pusing to:" + push.contact.username + " channel:'" + push.channel + "'");
+        ParseService.sendPush(push);
     };
     $scope.savePerson = function (fname, lname) {
         ParseService.savePerson(fname, lname);
@@ -230,77 +273,6 @@ angular.module('PreWarning.controllers', [])
     $scope.getPeople = function (params) {
         ParseService.getPeople(params);
     };
-
-    var buildNotification = function () {
-        var vibrationPattern = [$scope.settings.vibrationRepeat,
-                                $scope.settings.vibrationDuration,
-                               $scope.settings.vibrationDelay,
-                               ];
-        var notification = {
-            "cs": $scope.carSpeed,
-            "cd": $scope.carDirection,
-            "sdt": $scope.settings.smsDelayTime,
-            "vp": vibrationPattern
-        };
-        console.log(JSON.stringify(notification) + "-len: " + JSON.stringify(notification).length);
-        //        return notification;
-        //        return "looks like this works";
-        return "Hi";
-    };
-
-    var smsSuccess = function () {
-        console.log("Notification Sent");
-        $cordovaToast.showLongCenter("Notification Sent");
-    };
-    var smsFail = function () {
-        console.log("Notification Failed");
-        $cordovaToast.showLongCenter("Notification Failed !!");
-    };
-    //     window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(fs){
-    //            fs.root.getFile("temp.jpg", {create: true, exclusive: false},
-    //              function(entry){
-    //                var fileTransfer = new FileTransfer();
-    //                fileTransfer.download(
-    //                        fileName, // the filesystem uri you mentioned
-    //                        entry.toURL(),
-    //                        function(entry) {
-    //                            // do what you want with the entry here
-    //                            console.log("download complete: " + entry.fullPath);
-    //                            var src = entry.toURL(); 
-    //                            $("div[role=main]").append('<img src="'+src+'" >');
-    //                        },
-    //                        function(error) {
-    //                            console.log("error source " + error.source);
-    //                            console.log("error target " + error.target);
-    //                            console.log("error code " + error.code);
-    //                            console.log(error);
-    //                        },
-    //                        false,
-    //                        null
-    //                );
-    //            }, function(e){
-    //                console.log("file create error",e);
-    //            });
-    //        }, null);
-
-
-
-    //    $scope.isOnline = $cordovaNetwork.isOnline();
-    //  // listen for Online event1
-    //     document.addEventListener('$cordovaNetwork:online', function(event, networkState){
-    //      $scope.$apply(function(){
-    //        $scope.onlineState = networkState;
-    //      });
-    //    });
-    //
-    //    // listen for Offline event
-    //     document.addEventListener('$cordovaNetwork:offline', function(event, networkState){
-    //      $scope.$apply(function(){
-    //        $scope.offlineState = networkState;
-    //      });
-    //    });
-
-
 
     $scope.setSpeed = function (speed) {
         $scope.carSpeed = speed;
@@ -321,14 +293,14 @@ angular.module('PreWarning.controllers', [])
         $scope.settings.carSpeed = "";
         $scope.settings.carDirection = "";
     };
-            }])
+}])
 
 
-.controller('SettingsCtrl', ['$scope', 'SettingsService', 'ParseService', 'Contacts', function ($scope, SettingsService, ParseService, Contacts) {
+.controller('SettingsCtrl', ['$scope', 'SettingsService', 'BackgroundService', function ($scope, SettingsService, BackgroundService) {
     $scope.settings = SettingsService.settings;
-    $scope.lastRefreshed = Contacts.lastRefreshed;
-    $scope.refreshContactsList = function () {
-        ParseService.refreshContactsList();
+
+    $scope.toggleBackgroundMode = function () {
+        BackgroundService.toggleBackgroundMode();
     };
     //    $scope.settings.smsDelayTime = 0.5;
     }]);

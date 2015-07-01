@@ -17,25 +17,30 @@
                     <input type="text" ng-model="loginData.lastName">
                 </label>
                 <label class="item item-input">
-                    <span class="input-label" >Username</span>
-                    <input type="text" ng-model="loginData.username" required >
+                    <span class="input-label">Username</span>
+                    <input type="text" ng-model="loginData.username" required>
                 </label>
                 <label class="item item-input">
-                    <span class="input-label" >Password</span>
-                    <input type="password" ng-model="loginData.pass" required >
+                    <span class="input-label">Password</span>
+                    <input type="password" ng-model="loginData.pass" required>
                 </label>
                 <label class="item item-input">
                     <span class="input-label">Verify Password 
                     <span class="icon" ng-class="loginData.pass==loginData.password? 'ion-checkmark-round balanced':'ion-close-round assertive'">
                         </span>
                     </span>
-                    <input type="password" equals="{{loginData.pass}}" ng-model="loginData.password" required >
+                    <input type="password" equals="{{loginData.pass}}" ng-model="loginData.password" required>
                 </label>
                 <label class="item item-input">
                     <span class="input-label">Email</span>
                     <input type="email" ng-model="loginData.email" placeholder="newuser@example.com">
                 </label>
-
+                
+                <ul class="list">
+                    <ion-checkbox class="item" ng-model="loginData.channel1" >Channel 1</ion-checkbox>
+                    <ion-checkbox class="item" ng-model="loginData.channel2" >Channel 2</ion-checkbox>
+                    <ion-checkbox class="item" ng-model="loginData.channel3" >Channel 3</ion-checkbox>
+                </ul>
                 <label class="item">
                     <button class="button button-block button-positive" type="submit">Sign Up</button>
                 </label>
