@@ -1,4 +1,4 @@
-angular.module('PreWarning.services', []).factory("Contacts", function () {
+angular.module('PreWarningSystem.services', []).factory("Contacts", function () {
         var Contacts = {};
 
         Contacts.list = [];

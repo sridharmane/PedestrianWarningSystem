@@ -1,4 +1,4 @@
-angular.module('PreWarning.directives', [])
+angular.module('PreWarningSystem.directives', [])
 
 
 .directive('equals', function() {

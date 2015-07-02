@@ -1,4 +1,4 @@
-angular.module('PreWarning.controllers', [])
+angular.module('PreWarningSystem.controllers', [])
     .controller('AccountCtrl', ['$scope', 'ParseService', '$ionicModal', '$localstorage', function ($scope, ParseService, $ionicModal, $localstorage) {
         $scope.loginData = {
             username: '',
