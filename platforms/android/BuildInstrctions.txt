@@ -1,0 +1,5 @@
+keytool.exe -genkey -v -keystore PreWarningSystem-release-key.keystore -alias PreWarningSystem -keyalg RSA -keysize 2048 -validity 10000
+
+jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore PreWarningSystem-release-key.keystore android-release-unsigned.apk PreWarningSystem
+
+zipalign -v 4 android-release-unsigned.apk PreWarningSystem.apk
