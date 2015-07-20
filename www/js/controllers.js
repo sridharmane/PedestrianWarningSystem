@@ -1,4 +1,4 @@
-angular.module('PreWarningSystem.controllers', [])
+angular.module('PedestrianWarningSystem.controllers', [])
     .controller('AccountCtrl', ['$scope', 'ParseService', '$ionicModal', '$localstorage', function ($scope, ParseService, $ionicModal, $localstorage) {
         $scope.loginData = {
             username: '',
@@ -110,13 +110,21 @@ angular.module('PreWarningSystem.controllers', [])
 
 }])
 
-.controller('ReceiveCtrl', ['$scope', 'SettingsService', 'NotifyService', function ($scope, SettingsService, NotifyService) {
+.controller('ReceiveCtrl', ['$scope', 'SettingsService', 'NotifyService', '$interval', function ($scope, SettingsService, NotifyService, $interval) {
 
     $scope.settings = SettingsService.settings;
-    $scope.lastPush =NotifyService.lastPush;
-    $scope.getLastPush = function(){
+    $scope.lastPush = {};
+    $scope.timeSinceReceived = 0;
+    $interval(function () {
+        $scope.getLastPush();
+        $scope.timeSinceReceived = (new Date() - $scope.lastPush.timeReceived) / 1000;
+        $scope.notificationPlayed = $scope.lastPush.notificationPlayed;
+    }, 1000);
+
+
+    $scope.getLastPush = function () {
         $scope.lastPush = NotifyService.getLastPush();
-        console.log("lastPush: "+JSON.stringify($scope.lastPush));
+        console.log("lastPush: " + JSON.stringify($scope.lastPush));
     };
 }])
 
@@ -190,35 +198,6 @@ angular.module('PreWarningSystem.controllers', [])
     };
 
 
-    /****************Temp*/
-    var notifyUser = function (direction) {
-        if ($scope.settings.soundEnabled)
-            playSound(direction);
-        if ($scope.settings.vibrationEnabled)
-            vibrateWithPattern();
-    };
-
-    var vibrate = function (pattern) {
-        navigator.vibrate(pattern);
-    };
-    var vibrateWithPattern = function () {
-        var pattern = [];
-        for (var i = 0; i < $scope.settings.vibrationRepeat; i++) {
-            pattern.push($scope.settings.vibrationDuration);
-            if (i != i - 1)
-                pattern.push($scope.settings.vibrationDelay);
-        }
-        vibrate(pattern);
-    };
-    var playSound = function (direction) {
-        var audio = document.getElementById("audio");
-        if (direction === "left") {
-            audio.src = $scope.settings.audioSrc.left;
-        } else if (direction === "right") {
-            audio.src = $scope.settings.audioSrc.right;
-        }
-        audio.play();
-    };
 
     /**
         Returns a push object with
@@ -230,7 +209,11 @@ angular.module('PreWarningSystem.controllers', [])
         Build Vibration Pattern
         [NumberOfTimesToRepeat,DurationOfEachVibration,DelayBetweenVibrations]
         */
-        var vibrationPattern = [$scope.settings.vibrationRepeat, $scope.settings.vibrationDuration, $scope.settings.vibrationDelay];
+        var vibrationPattern =[];
+        for(var i=0;i<$scope.settings.vibrationRepeat;i++){
+            vibrationPattern.push($scope.settings.vibrationDuration);
+            vibrationPattern.push($scope.settings.vibrationDelay);
+        }
 
         var push = {};
 
@@ -258,7 +241,7 @@ angular.module('PreWarningSystem.controllers', [])
             "vibrationPattern": vibrationPattern
         };
         push.timeSent = Date.now();
-        console.log("push sent at:" +push.timeSent);
+        console.log("push sent at:" + push.timeSent);
         return push;
     };
 
@@ -266,6 +249,7 @@ angular.module('PreWarningSystem.controllers', [])
         var push = _buildPush();
         console.log("Pusing to:" + push.contact.username + " channel:'" + push.channel + "'");
         ParseService.sendPush(push);
+        $scope.clearSelection();
     };
     $scope.savePerson = function (fname, lname) {
         ParseService.savePerson(fname, lname);
@@ -290,8 +274,8 @@ angular.module('PreWarningSystem.controllers', [])
     };
 
     $scope.clearSelection = function () {
-        $scope.settings.carSpeed = "";
-        $scope.settings.carDirection = "";
+        $scope.carSpeed = '';
+        $scope.carDirection = '';
     };
 }])
 

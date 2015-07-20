@@ -1,4 +1,4 @@
-angular.module('PreWarningSystem.services', []).factory("Contacts", function () {
+angular.module('PedestrianWarningSystem.services', []).factory("Contacts", function () {
         var Contacts = {};
 
         Contacts.list = [];
@@ -97,10 +97,13 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
             setDelayTime: _setDelayTime
         };
     }])
-    .service('NotifyService', ['SettingsService', '$cordovaToast',
-    function (SettingsService, $cordovaToast) {
+    .service('NotifyService', ['SettingsService', '$cordovaToast', '$cordovaMedia', '$cordovaVibration',
+    function (SettingsService, $cordovaToast, $cordovaMedia, $cordovaVibration) {
             var _lastPush = {
                 timeDifference: 1234,
+                timeSinceReceived:0,
+                
+                notificationPlayed: false,
                 notification: {
                     carDirection: "left",
                     carSpeed: "verFast"
@@ -121,27 +124,48 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
                 console.log("NotifyService: " + text);
             };
 
-            var _vibrate = function (time) {
-                navigator.vibrate(time);
-            };
-            var _vibrateWithPattern = function (pattern) {
-                //[vibrationDuration,vibrationDelay,vibrationRepeat] = [1000, 100, 2]
-                for (var i = 0; i < pattern[2]; i++) {
-                    setInterval(_vibrate(pattern[0]), pattern[1]);
-                }
+            var _vibrate = function (pattern) {
+                $cordovaVibration.vibrate(pattern);
+                _log("Vibrating with pattern:" + pattern + " ");
             };
 
             var _playSound = function (notification) {
-                var audio = document.getElementById("audio");
-                if (notification.carDirection == "left")
-                    audio.src = SettingsService.settings.audioSrc.left;
-                else if (notification.carDirection == "right")
-                    audio.src = SettingsService.settings.audioSrc.right;
-                audio.play();
+                var audioSrc = "/android_asset/www/";
+                if (notification.carDirection === "left")
+                    audioSrc += SettingsService.settings.audioSrc.left;
+                else if (notification.carDirection === "right")
+                    audioSrc += SettingsService.settings.audioSrc.right;
+
+                _log("Setting source to :" + audioSrc);
+
+                //Check if  Media Plugin is available. If available, use it to notify.
+                if ($cordovaMedia) {
+                    var media = $cordovaMedia.newMedia(audioSrc);
+                    //                    .then(function () {
+                    //                        _toast("Media Initalised, playing");
+                    //                    }, function () {
+                    //                        _toast("Media Load Error");
+                    //                    });
+
+                    media.play();
+                } else { //Fallback to html5 audio
+                    _log("Using HTML5 Audio");
+                    var audio = document.getElementById("audio");
+                    audio.src = audioSrc;
+                    audio.play();
+                }
+                _log("Played Sound");
             };
 
             var _saveLastPush = function (push) {
+                //save time difference
                 push.timeDifference = _getTimeDiff(push.timeReceived, push.timeSent);
+                //Check if push was received later than set delay time
+                if (push.timeDifference > push.delayTime)
+                    push.delayTimeExceeded = true;
+                else
+                    push.delayTimeExceeded = false;
+                //save the push
                 _lastPush = push;
             };
 
@@ -150,20 +174,24 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
                 _saveLastPush(push);
                 var settings = push.settings;
                 var notification = push.notification;
-
-                _log("Notifying User");
-                if (settings.soundEnabled) {
-                    _playSound(notification);
-                    _log("Played Sound");
+                if (!push.delayTimeExceeded) {
+                    _log("Notifying User");
+                    if (settings.soundEnabled) {
+                        _playSound(notification);
+                    }
+                    if (settings.vibrationEnabled) {
+                        _vibrate(settings.vibrationPattern);
+                    }
+                    _lastPush.notificationPlayed = true;
+                    _toast("Received Push: \t Playing Notification");
                 }
-                if (settings.vibrationEnabled) {
-                    _vibrateWithPattern(settings.vibrationPattern);
-                    _log("Doing Vibration");
+                else{
+                    _toast("Received Push: \t Time Limit Exceeded, No notification");
                 }
 
             };
 
-            var secondsToHMS = function (secs) {
+            var _secondsToHMS = function (secs) {
                 function z(n) {
                     return (n < 10 ? '0' : '') + n;
                 }
@@ -175,8 +203,9 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
             var _getTimeDiff = function (timeReceived, timeSent) {
                 var diffMilliseconds = timeReceived - timeSent;
                 var diffSeconds = diffMilliseconds / 1000;
-                _toast("Time Difference: " + diffMilliseconds);
-                return secondsToHMS(diffSeconds);
+                _log("Time Difference: " + diffMilliseconds);
+                //                return _secondsToHMS(diffSeconds);
+                return diffMilliseconds;
             };
             return {
                 toast: _toast,
@@ -188,42 +217,49 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
     }])
     .service('BackgroundService', ['SettingsService', '$cordovaToast',
     function (SettingsService, $cordovaToast) {
-
+            var backgroundModeSettings = {
+                silent: true,
+            };
             var _enable = function () {
-                if(cordova.plugins.backgroundMode){
+                if (cordova.plugins.backgroundMode) {
+                    cordova.plugins.backgroundMode.configure(backgroundModeSettings);
                     cordova.plugins.backgroundMode.enable();
-                    if(_isEnabled)
-                    _toast("BackgroundService Enabled");
-                }
-                else{
+                    if (_isEnabled)
+                        _toast("BackgroundService Enabled");
+                } else {
                     _toast("BackgroundService Not Available");
                 }
             };
             var _disable = function () {
-                if(cordova.plugins.backgroundMode){
+                if (cordova.plugins.backgroundMode) {
                     cordova.plugins.backgroundMode.disable();
-                    if(!_isEnabled)
-                    _toast("BackgroundService Disabled");
-                }
-                else{
+                    if (!_isEnabled)
+                        _toast("BackgroundService Disabled");
+                } else {
                     _toast("BackgroundService Not Available");
                 }
             };
             var _isEnabled = function () {
                 return cordova.plugins.backgroundMode.isEnabled();
             };
-        
+
             var _toggleBackgroundMode = function () {
+                cordova.plugins.backgroundMode.onfailure = function (errorCode) {
+                    _toast("Error in BG Mode :" + errorCode);
+                };
                 if (_isEnabled()) {
                     _disable();
                 } else {
                     _enable();
                 }
             };
+            var _onFailure = function () {
 
+            };
             var _toast = function (text) {
                 try {
                     $cordovaToast.showLongBottom(text);
+                    _log(text);
                 } catch (e) {
                     _log(text);
                 }
@@ -355,11 +391,11 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
 
                 Parse.User.logIn(username, password, {
                     success: function (user) {
-                        _toast("Hello " + user.username);
+                        _toast("Hello " + username);
                         return deferred.resolve(user);
                     },
                     error: function (user, error) {
-                        _toast("Error Logging in user: " + user.username + " Error: " + error);
+                        _toast("Error Logging in user: " + username + " Error: " + error);
                         return deferred.reject(user);
                     }
                 });
@@ -435,10 +471,13 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
                 /////
                 parsePlugin.registerCallback('onNotification', function () {
                     window.onNotification = function (pnObj) {
+                        console.log("_registerCallback: triggered, handling received push");
                         _pushReceived(pnObj);
                         if (pnObj.receivedInForeground === false) {
                             // TODO: route the user to the uri in pnObj
-
+                            console.log("_registerCallback: received in background");
+                        } else {
+                            console.log("_registerCallback: received in foreground");
                         }
                     };
                 }, function (error) {
@@ -463,11 +502,12 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
                 "vibrationPattern": [1000, 100, 2],
                 "soundEnabled": true,
                 "vibrationEnabled": true,
-                "delayTime": 200
+                "delayTime": 2
             };
 
             var _pushReceived = function (pushObj) {
                 pushObj.timeReceived = Date.now();
+                pushObj.notificationPlayed = false;
                 _log("Push received : " + JSON.stringify(pushObj));
 
                 NotifyService.notify(pushObj);
@@ -502,4 +542,22 @@ angular.module('PreWarningSystem.services', []).factory("Contacts", function () 
                 updateUsername: _updateUsername,
 
             };
-        }]);
+        }])
+
+
+//NOTE: We are including the constant `ApiEndpoint` to be used here.
+.factory('Api', function ($http, ApiEndpoint) {
+    console.log('ApiEndpoint', ApiEndpoint);
+
+    var getApiData = function () {
+        return $http.get(ApiEndpoint.url + '/tasks')
+            .then(function (data) {
+                console.log('Got some data: ', data);
+                return data;
+            });
+    };
+
+    return {
+        getApiData: getApiData
+    };
+});

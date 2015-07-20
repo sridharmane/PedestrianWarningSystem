@@ -1,7 +1,9 @@
-// Pre Warning System
+// Pedestrian Warning System
 
-angular.module('PreWarningSystem', ['ionic', 'PreWarningSystem.controllers', 'PreWarningSystem.services', 'PreWarningSystem.directives', 'ngCordova','ionic.service.core'])
-
+angular.module('PedestrianWarningSystem', ['ionic', 'PedestrianWarningSystem.controllers', 'PedestrianWarningSystem.services', 'PedestrianWarningSystem.directives', 'ngCordova','ionic.service.core'])
+.constant('ApiEndpoint', {
+  url: 'http://192.168.1.10:35729/'
+})
 .run(function ($ionicPlatform, SettingsService, ParseService, BackgroundService, $localstorage) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -128,4 +130,10 @@ angular.module('PreWarningSystem', ['ionic', 'PreWarningSystem.controllers', 'Pr
         // The API key all services will use for this app
         api_key: 'dfed80e686e8f52c3edec5eaccbc265f48ec6c2dd54a9cff'
     });
-}]);
+}])
+
+.filter('capitalize', function() {
+    return function(input) {
+      return input.charAt(0).toUpperCase() + input.substr(1).toLowerCase();
+    };
+});

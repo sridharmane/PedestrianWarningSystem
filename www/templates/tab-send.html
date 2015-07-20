@@ -2,7 +2,7 @@
 
     <ion-content class="padding">
         <div class="list card">
-            <div class="item item-divider">Select Contact or Channel</div>
+            <div class="item item-divider">Select Contact</div>
             <div class="list">
                 <ion-item ng-if="!selected.contact.firstName && !selected.channel.name" ng-click="showContacts()" class="item"> Tap to Select</ion-item>
                 <div ng-if="selected.contact.firstName" class="item item-button-right">
@@ -38,22 +38,20 @@
                 </div>
             </div>
         </div>
+        <button class="button icon-left button-full button-positive " ng-hide="carDirection===undefined || carSpeed==='' || carSpeed===undefined || selected.contact.username===undefined ||selected.contact.username==='' " ng-disabled="settings.isOffline " ng-class="settings.isOffline? 'ion-alert-circled': 'ion-paper-airplane' " ng-click="sendPush() ">
+            {{settings.isOffline?"No Network - Cannot Send Notification ":"Send Notification "}}
+        </button>
         <div class="list">
-            <!--                <audio id="audio" ng-src="{{settings.currentAudioSrc}}"></audio>-->
-
-            <div class="list card" ng-show="carSpeed === '' || carDirection === undefined || carSpeed==='' || carSpeed === undefined">
-                <div class="item item-divider">Please select the following :</div>
-                <div class="item">
-                    <span ng-if="selected.contact.email === undefined &&  selected.channel.name === undefined" class="assertive">-&gt; Contact/Channel</span>
-                    <span ng-if="carSpeed === undefined || carSpeed === ''" class="assertive"> -&gt; Car Speed</span>
-                    <span ng-if="carDirection === undefined || carDirection === ''" class="assertive"> -&gt; Car Direction</span>
-                </div>
+            <div class="list card" ng-show="carDirection ==='' || carDirection === undefined || carSpeed==='' || carSpeed === undefined || selected.contact.username ==='' || selected.contact.username === undefined ">
+                <div class=" item item-divider">Please select the following :</div>
+                <!--                <div class="item ">-->
+                <span class="item assertive " ng-if="selected.contact.username==='' || selected.contact.username===undefined ">-&gt; Contact</span>
+                <span class="item assertive " ng-if="carSpeed===undefined || carSpeed==='' "> -&gt; Car Speed</span>
+                <span class="item assertive " ng-if="carDirection===undefined || carDirection==='' "> -&gt; Car Direction</span>
+                <!--                </div>-->
 
             </div>
         </div>
-        <button class="button icon-left button-full button-positive" ng-hide="carSpeed === '' || carDirection === undefined || carSpeed==='' || carSpeed === undefined || (selected.contact.email === undefined && selected.channel.name === undefined)" ng-disabled="settings.isOffline" ng-class="settings.isOffline?'ion-alert-circled':'ion-paper-airplane'" ng-click="sendPush()">
-            {{settings.isOffline?"No Network - Cannot Send Notification":"Send Notification"}}
-        </button>
-        <audio id="audio"></audio>
+        <audio id="audio "></audio>
     </ion-content>
 </ion-view>

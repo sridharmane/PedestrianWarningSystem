@@ -1,4 +1,4 @@
-angular.module('PreWarningSystem.directives', [])
+angular.module('PedestrianWarningSystem.directives', [])
 
 
 .directive('equals', function() {

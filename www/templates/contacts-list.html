@@ -6,22 +6,24 @@
 -->
 <ion-modal-view id="contactsList">
     <ion-header-bar class="bar-positive">
-        <h1 class="title">Select Channel or Contact</h1>
+        <h1 class="title">Select Contact</h1>
         <a ng-click="hideContacts()" class="button button-icon icon ion-close"></a>
     </ion-header-bar>
     <ion-content>
         <div class="list">
+<!--
             <div class="item item-divider">Channels
                 <i> (updated : {{getChannelsLastRefreshed() | date:'short'}})</i>
             </div>
             <a class="item" ng-click="selectChannel(channel)" ng-repeat="channel in channels">
                 {{channel.name}}
             </a>
+-->
             <ion-item class="item item-divider">Contacts
                 <i> (updated : {{getContactsLastRefreshed() | date:'short'}})</i>
             </ion-item>
             <a class="item" ng-click="selectContact(contact)" ng-repeat="contact in contacts">
-               {{contact.firstName}}{{" "}}{{contact.lastName}} ({{contact.email}})               
+               {{contact.firstName}}{{" "}}{{contact.lastName}} ({{contact.username}})               
             </a>
         </div>
 

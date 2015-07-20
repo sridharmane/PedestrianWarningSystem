@@ -13,9 +13,12 @@ Parse.Cloud.define("sendPush", function (request, response) {
         query = new Parse.Query(Parse.Installation);
         query.equalTo("channels", r.channel);
     }
+    var expirationTime = new Date(JSON.stringify(r.timeSent));
+    expirationTime = expirationTime.setSeconds(expirationTime.getSeconds()+10);
     //Send Push
     Parse.Push.send({
         where: query,
+        expiration_time:expirationTime,//Set expiry time to 10 seconds
         data: {
             settings: r.settings,
             notification: r.notification,
