@@ -4,9 +4,9 @@
         <div class="list card">
             <div class="item item-divider">Select Contact</div>
             <div class="list">
-                <ion-item ng-if="!selected.contact.firstName && !selected.channel.name" ng-click="showContacts()" class="item"> Tap to Select</ion-item>
-                <div ng-if="selected.contact.firstName" class="item item-button-right">
-                    <h2 class="inline">{{selected.contact.firstName +" "+ selected.contact.lastName +" ("+ selected.contact.email+")"}}</h2>
+                <ion-item ng-if="!selected.contact.objectId && !selected.channel.name" ng-click="showContacts()" class="item"> Tap to Select</ion-item>
+                <div ng-if="selected.contact.objectId" class="item item-button-right">
+                    <h2 class="inline">{{selected.contact.name +" ("+ selected.contact.email+")"}}</h2>
                     <button class="button icon button-icon assertive" ng-click="clearSelectedContact()">
                         <i class="icon ion-minus-circled assertive"></i>
                     </button>

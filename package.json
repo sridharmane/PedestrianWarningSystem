@@ -1,7 +1,7 @@
 {
-  "name": "prewarning",
+  "name": "PedestrianWarningSystem",
   "version": "1.0.0",
-  "description": "PreWarning: An Ionic project",
+  "description": "Pedestrian Warning System",
   "dependencies": {
     "gulp": "^3.5.6",
     "gulp-concat": "^2.2.0",

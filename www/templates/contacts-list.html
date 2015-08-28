@@ -23,7 +23,7 @@
                 <i> (updated : {{getContactsLastRefreshed() | date:'short'}})</i>
             </ion-item>
             <a class="item" ng-click="selectContact(contact)" ng-repeat="contact in contacts">
-               {{contact.firstName}}{{" "}}{{contact.lastName}} ({{contact.username}})               
+               {{contact.name}}{{" "}}({{contact.email}})               
             </a>
         </div>
 

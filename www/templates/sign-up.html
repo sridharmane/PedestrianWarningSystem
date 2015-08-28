@@ -9,12 +9,8 @@
         <form ng-submit="doSignUp()">
             <div class="list">
                 <label class="item item-input">
-                    <span class="input-label">First Name</span>
-                    <input type="text" ng-model="loginData.firstName">
-                </label>
-                <label class="item item-input">
-                    <span class="input-label">Last Name</span>
-                    <input type="text" ng-model="loginData.lastName">
+                    <span class="input-label">Name</span>
+                    <input type="text" ng-model="loginData.name" >
                 </label>
                 <label class="item item-input">
                     <span class="input-label">Username</span>
@@ -25,26 +21,17 @@
                     <input type="password" ng-model="loginData.pass" required>
                 </label>
                 <label class="item item-input">
-                    <span class="input-label">Verify Password 
+                    <span class="input-label">Verify Password &nbsp; 
                     <span class="icon" ng-class="loginData.pass==loginData.password? 'ion-checkmark-round balanced':'ion-close-round assertive'">
                         </span>
                     </span>
                     <input type="password" equals="{{loginData.pass}}" ng-model="loginData.password" required>
                 </label>
-<!--
                 <label class="item item-input">
                     <span class="input-label">Email</span>
-                    <input type="email" ng-model="loginData.email" placeholder="newuser@example.com">
-                </label>
--->
-                
-<!--
-                <ul class="list">
-                    <ion-checkbox class="item" ng-model="loginData.channel1" >Channel 1</ion-checkbox>
-                    <ion-checkbox class="item" ng-model="loginData.channel2" >Channel 2</ion-checkbox>
-                    <ion-checkbox class="item" ng-model="loginData.channel3" >Channel 3</ion-checkbox>
-                </ul>
--->
+                    <input type="email" ng-model="loginData.email" >
+                </label>                
+
                 <label class="item">
                     <button class="button button-block button-positive" type="submit">Sign Up</button>
                 </label>

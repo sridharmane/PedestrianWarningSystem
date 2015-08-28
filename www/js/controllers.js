@@ -1,5 +1,5 @@
 angular.module('PedestrianWarningSystem.controllers', [])
-    .controller('AccountCtrl', ['$scope', 'ParseService', '$ionicModal', '$localstorage', function ($scope, ParseService, $ionicModal, $localstorage) {
+    .controller('AccountCtrl', ['$scope', 'ParseService', '$ionicModal', '$localstorage', 'NotifyService', function ($scope, ParseService, $ionicModal, $localstorage, NotifyService) {
         $scope.loginData = {
             username: '',
             password: '',
@@ -12,14 +12,14 @@ angular.module('PedestrianWarningSystem.controllers', [])
             channel2: false,
             channel3: false,
         };
-        $scope.currentUser = "";
+        $scope.currentUser = {};
         $scope.saveCurrentUser = function (user) {
-            console.log("Saving user with username:" + user.username);
+            console.log("Saving user : " + JSON.stringify(user));
             $scope.currentUser = user;
             $localstorage.setObject('currentUser', user);
         };
         $scope.getCurrentUser = function () {
-            if ($scope.currentUser.username) {
+            if ($scope.currentUser.objectId) {
                 console.log("CurrentUser already present");
             } else {
                 if ($localstorage.getObject('currentUser')) {
@@ -39,6 +39,15 @@ angular.module('PedestrianWarningSystem.controllers', [])
                 }
             }
         };
+
+        //Save the installationId in $scope
+        ParseService.getInstallationId().then(
+            function (installationId) {
+                $scope.installationId = installationId;
+            },
+            function (err) {
+                console.log(err);
+            });
 
         //Login Modal
         $ionicModal.fromTemplateUrl('templates/login.html', {
@@ -63,14 +72,21 @@ angular.module('PedestrianWarningSystem.controllers', [])
                 .then(function (user) {
                     if (user) {
                         console.log("doLogin: Returned from Parse: " + JSON.stringify(user));
-                        user = JSON.parse(JSON.stringify(user));
                         $scope.saveCurrentUser(user);
-                        ParseService.updateUsername(user.username, $localstorage.get('installationId', ''));
-                        $scope.hideLogin();
+                        //Update the username corresponding to the installation.
+                        console.log("doLogin installationId: " + $scope.installationId);
+                        ParseService.updateUser().then(
+                            function (info) {
+                                NotifyService.toast(info);
+                                $scope.hideLogin();
+                            },
+                            function (error) {
+                                NotifyService.toast(error);
+                            }
+                        );
                     }
                 }, function (error) {
-                    // promise rejected, could log the error with: console.log('error', error);
-                    console.log(error);
+                    NotifyService.toast(error);
                 });
         };
 
@@ -88,23 +104,28 @@ angular.module('PedestrianWarningSystem.controllers', [])
             $scope.modalSignUp.hide();
         };
         $scope.doSignUp = function () {
-            //params username, password, firstName, lastName, email, groups
-            var promise = ParseService.signUp($scope.loginData.username,
+            //            params username, password, firstName, lastName, email, groups
+            ParseService.signUp($scope.loginData.username,
                     $scope.loginData.password,
-                    $scope.loginData.firstName,
-                    $scope.loginData.lastName,
                     $scope.loginData.email,
-                    $scope.loginData.groups)
+                    $scope.loginData.name)
                 .then(function (user) {
                     if (user.username) {
                         $scope.saveCurrentUser(user);
-                        $scope.hideSignUp();
                         //Update the username corresponding to the installation.
-                        ParseService.updateUsername(user.username, $localstorage.get('installationId', ''));
+                        console.log("doSignup installationId: " + $scope.installationId);
+                        ParseService.updateUser().then(
+                            function (info) {
+                                NotifyService.toast(info);
+                                $scope.hideSignUp();
+                            },
+                            function (error) {
+                                NotifyService.toast(error);
+                            }
+                        );
                     }
                 }, function (error) {
-                    // promise rejected, could log the error with: console.log('error', error);
-                    console.log(error);
+                    NotifyService.toast(error);
                 });
         };
 
@@ -209,8 +230,8 @@ angular.module('PedestrianWarningSystem.controllers', [])
         Build Vibration Pattern
         [NumberOfTimesToRepeat,DurationOfEachVibration,DelayBetweenVibrations]
         */
-        var vibrationPattern =[];
-        for(var i=0;i<$scope.settings.vibrationRepeat;i++){
+        var vibrationPattern = [];
+        for (var i = 0; i < $scope.settings.vibrationRepeat; i++) {
             vibrationPattern.push($scope.settings.vibrationDuration);
             vibrationPattern.push($scope.settings.vibrationDelay);
         }
@@ -223,10 +244,7 @@ angular.module('PedestrianWarningSystem.controllers', [])
             push.channel = "";
         }
         if ($scope.selected.contact) {
-
-            push.contact = {
-                "username": $scope.selected.contact.username
-            };
+            push.contact = $scope.selected.contact;
         } else {
             push.contact = "";
         }
@@ -280,11 +298,13 @@ angular.module('PedestrianWarningSystem.controllers', [])
 }])
 
 
-.controller('SettingsCtrl', ['$scope', 'SettingsService', 'BackgroundService', function ($scope, SettingsService, BackgroundService) {
+.controller('SettingsCtrl', ['$scope', 'SettingsService', 'BackgroundService', 'KeepAwakeService', function ($scope, SettingsService, BackgroundService, KeepAwakeService) {
     $scope.settings = SettingsService.settings;
 
     $scope.toggleBackgroundMode = function () {
         BackgroundService.toggleBackgroundMode();
     };
-    //    $scope.settings.smsDelayTime = 0.5;
+    $scope.toggleKeepAwake = function () {
+        KeepAwakeService.toggleKeepAwake();
+    };
     }]);

@@ -1,6 +1,56 @@
 <ion-view view-title="Receive Notifications" view-name="recieve">
     <ion-content class="padding">
-
+        <div class="list card">
+            <div class="item item-divider item-icon-right" ng-if="timeSinceReceived">
+                Last alert received {{timeSinceReceived | number:2 }} s ago</div>
+            <div class="item item-divider item-icon-right" ng-if="!timeSinceReceived">
+                Last alert</div>
+            <div ng-show="!lastPush.timeSent" class="item item-body list">
+                <i class="item item-text-wrap">No alerts received.</i> 
+                <i class="item item-text-wrap">Your last alert will show here automatically once received.</i>
+            </div>
+            <ion-item ng-show="lastPush.timeSent" class="item">
+                <div class="row">
+                    <div class="col-67">
+                        <h2>Car Speed:</h2>
+                        <h2>Car Direction:</h2>
+                        <h2>Time to receive:</h2>
+                        <h2>Notification Played:</h2>
+                        <h2>Delay Time Exceeded:</h2>
+                    </div>
+                    <div class="col-33">
+                        <h2>{{lastPush.notification.carSpeed}}</h2>
+                        <h2>{{lastPush.notification.carDirection}}</h2>
+                        <h2>{{lastPush.timeDifference/1000 | number: 2}} s</h2>
+                        <p>{{lastPush.notificationPlayed }}</p>
+                        <p>{{lastPush.delayTimeExceeded }}</p>
+                    </div>
+                </div>
+            </ion-item>
+        </div>
+       
+        <div class="list card" ng-show="settings.keepAwake">
+            <div class="item item-divider item-icon-right">
+                <i class="icon ion-checkmark-circled balanced"></i> Screen Awake is On
+            </div>
+            <div class="item item-body list">
+                <i class="item balanced item-text-wrap">Notifications will play when app is open</i>
+                <i class="item energized item-text-wrap">Screen will not turn off till app is closed</i>
+                <i class="item item-text-wrap">Go to 'Settings' tab -&gt; 'Keep Screen Awake' to toggle this mode</i>
+            </div>
+        </div>
+        <div class="list card" ng-show="!settings.keepAwake">
+            <div class="item item-divider item-icon-right">
+                <i class="icon ion-alert-circled energized"></i> Screen Awake is Off
+            </div>
+            <div class="item item-body list">
+                <i class="item balanced item-text-wrap">Notifications will play when app is open</i>
+                <i class="item assertive item-text-wrap">No notifications will be played after screen turns off</i>
+                <i class="item item-text-wrap">Go to 'Settings' tab -&gt; 'Keep Screen Awake' to toggle this mode</i>
+            </div>
+        </div>
+        <audio id="audio" ng-src="{{settings.currentAudioSrc}}"></audio>
+         <!--
         <div class="list card" ng-show="settings.backgroundModeEnabled">
             <div class="item item-divider item-icon-right">
                 <i class="icon ion-checkmark-circled balanced"></i>
@@ -19,34 +69,6 @@
                 <i class="assertive">Notifications will NOT play in Background. Enable Background mode in Settings Tab</i>
             </div>
         </div>
-        <div class="list card">
-            <div class="item item-divider item-icon-right" ng-if="timeSinceReceived">
-                Last alert received {{timeSinceReceived | number:2 }} s ago</div>
-            <div class="item item-divider item-icon-right" ng-if="!timeSinceReceived">
-                Last alert</div>
-            <ion-item ng-show="!lastPush.timeSent" class="item">
-                <h2>No alerts received.</h2>
-            </ion-item>
-            <ion-item ng-show="lastPush.timeSent" class="item">
-                <div class="row">
-                    <div class="col-67">
-                        <h2>Car Speed:</h2>
-                        <h2>Car Direction:</h2>
-                        <h2>Time to receive:</h2>
-                        <h2>Notification Played:</h2>
-                        <h2>Delay Time Exceeded:</h2>
-                    </div>
-                    <div class="col-33">
-                        <h2>{{lastPush.notification.carSpeed}}</h2>
-                        <h2>{{lastPush.notification.carDirection}}</h2>
-                        <p>{{lastPush.timeDifference/1000 | number: 2}} s</p>
-                        <p>{{lastPush.notificationPlayed }}</p>
-                        <p>{{lastPush.delayTimeExceeded}}</p>
-                    </div>
-                </div>
-            </ion-item>
-
-            <audio id="audio" ng-src="{{settings.currentAudioSrc}}"></audio>
-        </div>
+-->
     </ion-content>
 </ion-view>

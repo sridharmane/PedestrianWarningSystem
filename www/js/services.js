@@ -6,6 +6,7 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
         Contacts.contactsLastRefreshed = null;
         Contacts.channelsLastRefreshed = null;
         Contacts.addContact = function (contact) {
+//            console.log(JSON.stringify(contact));
             Contacts.list.push(contact);
             Contacts.contactsLastRefreshed = new Date();
             console.log("Contacts Refreshed on :" + Contacts.contactsLastRefreshed);
@@ -66,6 +67,7 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
             'vibrationDelay': 100,
             'vibrationRepeat': 2,
             'backgroundModeEnabled': true, //Set this to true to get notificaitons in the background.
+            'keepAwake': true, //Device never sleeps if this is enabled
 
         };
         var _setOfflineStatus = function (status) {
@@ -101,8 +103,8 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
     function (SettingsService, $cordovaToast, $cordovaMedia, $cordovaVibration) {
             var _lastPush = {
                 timeDifference: 1234,
-                timeSinceReceived:0,
-                
+                timeSinceReceived: 0,
+
                 notificationPlayed: false,
                 notification: {
                     carDirection: "left",
@@ -184,8 +186,7 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
                     }
                     _lastPush.notificationPlayed = true;
                     _toast("Received Push: \t Playing Notification");
-                }
-                else{
+                } else {
                     _toast("Received Push: \t Time Limit Exceeded, No notification");
                 }
 
@@ -215,8 +216,39 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
             };
 
     }])
-    .service('BackgroundService', ['SettingsService', '$cordovaToast',
-    function (SettingsService, $cordovaToast) {
+    .service('KeepAwakeService', ['SettingsService', '$cordovaToast', function (SettingsService, $cordovaToast) {
+        var _keepAwake = function () {
+            window.plugins.insomnia.keepAwake();
+            _toast("On");
+        };
+        var _allowSleepAgain = function () {
+            window.plugins.insomnia.allowSleepAgain();
+            _toast("Off");
+        };
+        var _toggleKeepAwake = function () {
+            if (SettingsService.settings.keepAwake) {
+                _keepAwake();
+            } else {
+                _allowSleepAgain();
+            }
+        };
+        var _toast = function (text) {
+            try {
+                $cordovaToast.showLongBottom("KeepAwakeService: " + text);
+                _log(text);
+            } catch (e) {
+                _log(text);
+            }
+        };
+        var _log = function (text) {
+            console.log("KeepAwakeService: " + text);
+        };
+        return {
+            toggleKeepAwake: _toggleKeepAwake
+        };
+}])
+    .service('BackgroundService', ['$cordovaToast',
+    function ($cordovaToast) {
             var backgroundModeSettings = {
                 silent: true,
             };
@@ -275,8 +307,8 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
             };
 
     }])
-    .service('ParseService', ['$q', 'Contacts', 'SettingsService', 'NotifyService',
-    function ($q, Contacts, SettingsService, NotifyService) {
+    .service('ParseService', ['$q', 'Contacts', 'SettingsService', 'NotifyService', '$localstorage',
+    function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
             /**
              *   Variables and constants
              */
@@ -284,29 +316,61 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
             var _clientKey = "PsNI6F4VeSO0m2yaHLn6uYnoaN8X7sbUJ7nOj1wE";
             var _jsKey = "YNFW7qk1gKUIxE2RiOGJFKIPyGtdorus8E1mPCyr";
             var _restAPIKey = "gJwHkPD7RtIrF1kqLyg1rqbtvcRKeitNijAKXcAg";
-
+            var _installationId = '';
             /**
              *   Functions
              */
 
             var _init = function () {
-                var deferred = $q.defer();
-                //Register the app
+                var defer = $q.defer();
                 Parse.initialize(_appId, _jsKey);
+                parsePlugin.initialize(_appId, _clientKey, function () {
+                    //Get the installation objectId and save it
+                    parsePlugin.getInstallationId(function (id) {
+                        _saveInstallationId(id);
+                        defer.resolve(id);
+                        //defer.resolve("Setup Success. Device registered to receive notifications.");
 
-                _log("Called Parse Init Service");
+                    }, function (error) {
+                        defer.reject('Error getting installation object id. ' + error);
+                    });
+                }, function (error) {
+                    defer.reject('Error initializing. Cannot send targeted notifications. Please Try Again !' + error);
+                });
 
-                //Check if any user is registered.
-                if (_getCurrentUser()) {
-                    //User Present
-                    deferred.resolve(_getCurrentUser());
+                return defer.promise;
+            };
+
+            /*
+                Retruns the installationId
+                if not found, will call setup
+            */
+            var _getInstallationId = function () {
+                var defer = $q.defer();
+                if (_installationId === '') {
+                    if ($localstorage.get('installationId', '') === '') {
+                        _log('No Installaiton ID found, attempting to retreive one');
+                        _init().then(function (installationId) {
+                            _saveInstallationId(installationId);
+                            defer.resolve(installationId);
+                        }, function (err) {
+                            defer.reject(err);
+                            _toast(err);
+                        });
+                    } else {
+                        _log("Found installationId @localstorage");
+                        defer.resolve($localstorage.get('installationId', ''));
+                    }
                 } else {
-                    //User Not Present
-                    _log("No user present");
-                    deferred.reject("No User Logged In");
+                    _log("Found installationId @Service");
+                    defer.resolve(_installationId);
                 }
+                return defer.promise;
+            };
 
-                return deferred.promise;
+            var _saveInstallationId = function (id) {
+                _installationId = id;
+                $localstorage.set('installationId', id);
             };
 
             var _refreshContactsList = function () {
@@ -317,8 +381,8 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
                         var contactsList = [];
                         for (var i = 0; i < contactsJson.length; i++) {
                             contactsList.push(contactsJson[i]);
-                            //                        console.log(JSON.stringify(results[i]));
                         }
+                        console.log(contactsList);
                         Contacts.updateContactsList(contactsList);
                     }
                 });
@@ -387,19 +451,17 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
                 //Logout current user
                 Parse.User.logOut();
 
-                var deferred = $q.defer();
+                var defer = $q.defer();
 
                 Parse.User.logIn(username, password, {
                     success: function (user) {
-                        _toast("Hello " + username);
-                        return deferred.resolve(user);
+                        defer.resolve(JSON.parse(JSON.stringify(user)));
                     },
-                    error: function (user, error) {
-                        _toast("Error Logging in user: " + username + " Error: " + error);
-                        return deferred.reject(user);
+                    error: function (user,error) {
+                        defer.reject(error);
                     }
                 });
-                return deferred.promise;
+                return defer.promise;
 
             };
             var _logout = function () {
@@ -409,11 +471,14 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
                     _log("No user to logout " + JSON.stringify(_getCurrentUser()));
                 Parse.User.logOut();
             };
-            var _signUp = function (username, password, firstName, lastName, email, groups) {
+            var _signUp = function (username, password, email, name) {
+                //                var _signUp = function (username, password, firstName, lastName, groups) {
 
                 //Logout current user
                 Parse.User.logOut();
 
+                var defer = $q.defer();
+                
                 //Creating new User
                 var user = new Parse.User();
                 //Min required for using Parse signup feature
@@ -422,53 +487,55 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
                 user.set("email", email);
 
                 //Extra preperties
-                user.set("firstName", firstName);
-                user.set("lastName", lastName);
-                user.set("groups", groups); //array
+                user.set("name", name);
+//                user.set("groups", groups); //array
                 // user.set("phone", "415-392-0202");
 
-
-                var deferred = $q.defer();
 
                 //do the signup using the parse api
                 user.signUp(null, {
                     success: function (data) {
                         // Hooray! Let them use the app now.
-                        _log("Signedup User:" + JSON.stringify(data));
                         var user = JSON.parse(JSON.stringify(data));
-                        _toast("Hello " + user.firstName + " " + user.lastName);
-
-                        return deferred.resolve(user);
-
+                        defer.resolve(user);
                     },
-                    error: function (user, error) {
-                        // Show the error message somewhere and let the user try again.
-                        //                    _toast("Error: " + error.code + " : " + JSON.stringify(error));
-                        _toast(JSON.stringify(error));
-                        return deferred.reject(user);
+                    error: function (user,error) {
+                        defer.reject(error.message);
                     }
                 });
-                return deferred.promise;
+                return defer.promise;
             };
 
-            var _updateUsername = function (username, installationId) {
-
-                Parse.Cloud.run('updateUsername', {
-                    "username": username,
+            var _updateUser = function () {
+                var defer = $q.defer();
+                var currentUserId = Parse.User.current().id;
+                var installationId = _installationId;
+                //Check if installationId is available, if not, init
+                if (installationId === '') {
+                    _getInstallationId().then(function (id) {
+                        installationId = id;
+                    }, function (error) {
+                        _log("Couldnot get installation Id. Error: " + error);
+                    });
+                }
+                //Update the user using cloud code since the js sdk cannot update the installation object.
+                //Will change to REST API later.
+                Parse.Cloud.run('updateUser', {
+                    "userId": currentUserId,
                     "installationId": installationId
                 }, {
                     success: function (result) {
-                        _log(JSON.stringify(result));
+                        defer.resolve(result);
                     },
                     error: function (error) {
-                        _log(JSON.stringify(error));
+                        defer.reject(error);
                     }
                 });
-
+                return defer.promise;
             };
 
             var _registerCallback = function () {
-                /////
+
                 parsePlugin.registerCallback('onNotification', function () {
                     window.onNotification = function (pnObj) {
                         console.log("_registerCallback: triggered, handling received push");
@@ -502,7 +569,8 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
                 "vibrationPattern": [1000, 100, 2],
                 "soundEnabled": true,
                 "vibrationEnabled": true,
-                "delayTime": 2
+                "delayTime": 2,
+                "keepAwake": true
             };
 
             var _pushReceived = function (pushObj) {
@@ -539,8 +607,8 @@ angular.module('PedestrianWarningSystem.services', []).factory("Contacts", funct
                 registerCallback: _registerCallback,
                 signUp: _signUp,
                 sendPush: _sendPush,
-                updateUsername: _updateUsername,
-
+                updateUser: _updateUser,
+                getInstallationId: _getInstallationId,
             };
         }])
 
