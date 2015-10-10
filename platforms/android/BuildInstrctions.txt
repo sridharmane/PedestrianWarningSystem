@@ -1,0 +1,7 @@
+keytool.exe -genkey -v -keystore PedestrianWarningSystem-release-key.keystore -alias PedestrianWarningSystem -keyalg RSA -keysize 2048 -validity 10000
+
+[pass:cognitive]
+
+jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore PedestrianWarningSystem-release-key.keystore android-release-unsigned.apk PedestrianWarningSystem
+
+zipalign -v 4 android-release-unsigned.apk PedestrianWarningSystem.apk

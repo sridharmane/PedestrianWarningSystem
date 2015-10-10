@@ -10,11 +10,22 @@
         <a ng-click="hideContacts()" class="button button-icon icon ion-close"></a>
     </ion-header-bar>
     <ion-content>
-        <label class="item item-divider" ng-model="lastRefreshed">Last Refreshed : {{lastRefreshed | date:'medium'}}</label>
-    <ion-list>
-        <ion-item ng-click="selectContact(contact)" ng-repeat="contact in contacts">
-            <h2>{{contact.firstName}} {{contact.lastName}}</h2>
-        </ion-item>
-    </ion-list>
+        <div class="list">
+<!--
+            <div class="item item-divider">Channels
+                <i> (updated : {{getChannelsLastRefreshed() | date:'short'}})</i>
+            </div>
+            <a class="item" ng-click="selectChannel(channel)" ng-repeat="channel in channels">
+                {{channel.name}}
+            </a>
+-->
+            <ion-item class="item item-divider">Contacts
+                <i> (updated : {{getContactsLastRefreshed() | date:'short'}})</i>
+            </ion-item>
+            <a class="item" ng-click="selectContact(contact)" ng-repeat="contact in contacts">
+               {{contact.name}}{{" "}}({{contact.email}})               
+            </a>
+        </div>
+
     </ion-content>
 </ion-modal-view>
