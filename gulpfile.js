@@ -6,6 +6,9 @@ var sass = require('gulp-sass');
 var minifyCss = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var sh = require('shelljs');
+//For android signing
+// var create = require('gulp-create');
+// var android = require('gulp-cordova-android');
 
 var paths = {
   sass: ['./scss/**/*.scss']
@@ -50,6 +53,15 @@ gulp.task('git-check', function(done) {
   }
   done();
 });
+
+// //Task to createa a signed android apk
+// gulp.task('create', function() {
+//     return gulp.src('dist')
+//         .pipe(create())
+//         .pipe(android({storeFile: '/Path/to/key.keystore', keyAlias: 'my_alias'}))
+//         .pipe(gulp.dest('builds'));
+// });
+
 //
 //// `npm install --save replace`
 //var replace = require('replace');
