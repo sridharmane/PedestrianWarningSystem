@@ -1,310 +1,282 @@
 angular.module('PedestrianWarningSystem.controllers', [])
-    .controller('AccountCtrl', ['$scope', 'ParseService', '$ionicModal', '$localstorage', 'NotifyService', function ($scope, ParseService, $ionicModal, $localstorage, NotifyService) {
-        $scope.loginData = {
-            username: '',
-            password: '',
-            firstName: '',
-            lastName: '',
-            email: '',
-            groups: [],
-            pass: '',
-            channel1: false,
-            channel2: false,
-            channel3: false,
-        };
-        $scope.currentUser = {};
-        $scope.saveCurrentUser = function (user) {
-            console.log("Saving user : " + JSON.stringify(user));
-            $scope.currentUser = user;
-            $localstorage.setObject('currentUser', user);
-        };
-        $scope.getCurrentUser = function () {
-            if ($scope.currentUser.objectId) {
-                console.log("CurrentUser already present");
-            } else {
-                if ($localstorage.getObject('currentUser')) {
-                    $scope.currentUser = $localstorage.getObject('currentUser');
-                    console.log("Current User: " + $scope.currentUser.username);
-                } else {
-                    console.log("No user found in loca storage, checking parse server.");
-                    var currentUser = ParseService.getCurrentUser();
-                    if (currentUser) {
-                        console.log("User found on Parse server.");
-                        console.log(JSON.stringify(currentUser));
-                        $scope.saveCurrentUser(currentUser);
-                    } else {
-                        console.log("No user found in loca storage, Login.");
-                        $scope.login();
-                    }
-                }
-            }
-        };
+.controller('AccountCtrl', ['$scope', 'ParseService', '$ionicModal','$ionicPopup', '$localstorage', 'NotifyService','FirebaseService',
+function ($scope, ParseService, $ionicModal,$ionicPopup, $localstorage, NotifyService,FirebaseService) {
+  $scope.loginData = {
+    username: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    groups: [],
+    pass: '',
+  };
 
-        //Save the installationId in $scope
-        ParseService.getInstallationId().then(
-            function (installationId) {
-                $scope.installationId = installationId;
-            },
-            function (err) {
-                console.log(err);
-            });
-
-        //Login Modal
-        $ionicModal.fromTemplateUrl('templates/login.html', {
-            scope: $scope,
-            animation: 'slide-in-up',
-        }).then(function (modal) {
-            $scope.modalLogin = modal;
-        });
-        $scope.login = function () {
-            $scope.modalLogin.show();
-        };
-        $scope.logout = function () {
-            ParseService.logout();
-            $localstorage.set("currentUser", "");
-            $scope.currentUser = "";
-        };
-        $scope.hideLogin = function () {
-            $scope.modalLogin.hide();
-        };
-        $scope.doLogin = function () {
-            var promise = ParseService.login($scope.loginData.username, $scope.loginData.password)
-                .then(function (user) {
-                    if (user) {
-                        console.log("doLogin: Returned from Parse: " + JSON.stringify(user));
-                        $scope.saveCurrentUser(user);
-                        //Update the username corresponding to the installation.
-                        console.log("doLogin installationId: " + $scope.installationId);
-                        ParseService.updateUser().then(
-                            function (info) {
-                                NotifyService.toast(info);
-                                $scope.hideLogin();
-                            },
-                            function (error) {
-                                NotifyService.toast(error);
-                            }
-                        );
-                    }
-                }, function (error) {
-                    NotifyService.toast(error);
-                });
-        };
-
-        //Sign Up Modal
-        $ionicModal.fromTemplateUrl('templates/sign-up.html', {
-            scope: $scope,
-            animation: 'slide-in-up',
-        }).then(function (modal) {
-            $scope.modalSignUp = modal;
-        });
-        $scope.signUp = function () {
-            $scope.modalSignUp.show();
-        };
-        $scope.hideSignUp = function () {
-            $scope.modalSignUp.hide();
-        };
-        $scope.doSignUp = function () {
-            //            params username, password, firstName, lastName, email, groups
-            ParseService.signUp($scope.loginData.username,
-                    $scope.loginData.password,
-                    $scope.loginData.email,
-                    $scope.loginData.name)
-                .then(function (user) {
-                    if (user.username) {
-                        $scope.saveCurrentUser(user);
-                        //Update the username corresponding to the installation.
-                        console.log("doSignup installationId: " + $scope.installationId);
-                        ParseService.updateUser().then(
-                            function (info) {
-                                NotifyService.toast(info);
-                                $scope.hideSignUp();
-                            },
-                            function (error) {
-                                NotifyService.toast(error);
-                            }
-                        );
-                    }
-                }, function (error) {
-                    NotifyService.toast(error);
-                });
-        };
-
-}])
-
-.controller('ReceiveCtrl', ['$scope', 'SettingsService', 'NotifyService', '$interval', function ($scope, SettingsService, NotifyService, $interval) {
-
-    $scope.settings = SettingsService.settings;
-    $scope.lastPush = {};
-    $scope.timeSinceReceived = 0;
-    $interval(function () {
-        $scope.getLastPush();
-        $scope.timeSinceReceived = (new Date() - $scope.lastPush.timeReceived) / 1000;
-        $scope.notificationPlayed = $scope.lastPush.notificationPlayed;
-    }, 1000);
+  $scope.currentUser = ParseService.getCurrentUser();
 
 
-    $scope.getLastPush = function () {
-        $scope.lastPush = NotifyService.getLastPush();
-        console.log("lastPush: " + JSON.stringify($scope.lastPush));
-    };
-}])
+  var deploy = new Ionic.Deploy();
 
-.controller('SendCtrl', ['$scope', 'ParseService', 'SettingsService', 'Contacts', '$cordovaNetwork', '$cordovaToast', '$http', '$sce', '$ionicModal', function ($scope, ParseService, SettingsService, Contacts, $cordovaNetwork, $cordovaToast, $http, $sce, $ionicModal) {
+  deploy.watch().then(function() {}, function() {},
+  function(hasUpdate) {
+    console.log("has Update");
+    $scope.doUpdate();
+  });
 
-    $scope.settings = SettingsService.settings;
-    $scope.lastRefreshed = Contacts.lastRefreshed;
-    var baseUrl = "https://api.parse.com/1/";
-    var pushUrl = "push";
-
-    $scope.contacts = [];
-    $scope.channels = [];
-    $scope.selected = {
-        contact: {},
-        channel: {},
-    };
-
-    $ionicModal.fromTemplateUrl('templates/contacts-list.html', {
-        scope: $scope,
-        animation: 'slide-in-up',
-        //        controller: 'SendCtrl'
-    }).then(function (modal) {
-        $scope.getContacts();
-        $scope.getChannels();
-        $scope.modalContacts = modal;
+  // Update app code with new release from Ionic Deploy
+  $scope.doUpdate = function() {
+    deploy.update().then(function(res) {
+      console.log('Ionic Deploy: Update Success! ', res);
+    }, function(err) {
+      console.log('Ionic Deploy: Update error! ', err);
+    }, function(prog) {
+      console.log('Ionic Deploy: Progress... ', prog);
     });
-    $scope.showContacts = function () {
-        $scope.getContacts();
-        $scope.getChannels();
-        $scope.modalContacts.show();
-        if (Contacts.lastRefreshed === "Never")
-            ParseService.refreshContactsList();
-    };
-    $scope.hideContacts = function () {
-        $scope.modalContacts.hide();
-    };
+  };
 
-    $scope.selectContact = function (contact) {
-        $scope.selected.contact = contact;
-        $scope.hideContacts();
-    };
-    $scope.selectChannel = function (channel) {
-        $scope.selected.channel = channel;
-        $scope.hideContacts();
-    };
-    $scope.clearSelectedChannel = function () {
-        $scope.selected.channel = {};
-    };
-    $scope.clearSelectedContact = function () {
-        console.log("Clearing Contact");
-        $scope.selected.contact = {};
-        console.log($scope.selected.contact);
-    };
+  // Check Ionic Deploy for new code
+  $scope.checkForUpdates = function() {
+    console.log('Ionic Deploy: Checking for updates');
+    deploy.check().then(function(hasUpdate) {
+      console.log('Ionic Deploy: Update available: ' + hasUpdate);
+      $scope.hasUpdate = hasUpdate;
+    }, function(err) {
+      console.error('Ionic Deploy: Unable to check for updates', err);
+    });
+  };
 
 
-    $scope.getContacts = function () {
-        if ($scope.contacts.length > 0) {} else {
-            $scope.contacts = ParseService.getContacts();
-        }
-    };
-    $scope.getChannels = function () {
-        if ($scope.channels.length > 0) {} else {
-            $scope.channels = ParseService.getChannels();
-        }
-    };
-    $scope.getContactsLastRefreshed = function () {
-        return Contacts.contactsLastRefreshed;
-    };
-    $scope.getChannelsLastRefreshed = function () {
-        return Contacts.channelsLastRefreshed;
+  //Login Modal
+  $ionicModal.fromTemplateUrl('templates/login.html', {
+    scope: $scope,
+    animation: 'slide-in-up',
+  }).then(function (modal) {
+    $scope.modalLogin = modal;
+  });
+  $scope.login = function () {
+    $scope.modalLogin.show();
+  };
+  $scope.logout = function () {
+    ParseService.logout();
+    $scope.currentUser = null;
+  };
+  $scope.hideLogin = function () {
+    $scope.modalLogin.hide();
+  };
+  $scope.doLogin = function () {
+    var promise = ParseService.login($scope.loginData.username, $scope.loginData.password)
+    .then(function (user) {
+      if (user) {
+        console.log("doLogin: Returned from Parse: " + JSON.stringify(user));
+        $scope.hideLogin();
+        $scope.currentUser = ParseService.getCurrentUser();
+      }
+    }, function (error) {
+      NotifyService.toast(error);
+    });
+  };
+
+  //Sign Up Modal
+  $ionicModal.fromTemplateUrl('templates/sign-up.html', {
+    scope: $scope,
+    animation: 'slide-in-up',
+  }).then(function (modal) {
+    $scope.modalSignUp = modal;
+  });
+  $scope.signUp = function () {
+    $scope.modalSignUp.show();
+  };
+  $scope.hideSignUp = function () {
+    $scope.modalSignUp.hide();
+  };
+  $scope.doSignUp = function () {
+    //            params username, password, firstName, lastName, email, groups
+    ParseService.signUp($scope.loginData.username,
+      $scope.loginData.password,
+      $scope.loginData.email,
+      $scope.loginData.name)
+      .then(function (user) {
+
+          $scope.currentUser = ParseService.getCurrentUser();
+
+      }, function (error) {
+        NotifyService.toast(error);
+      });
     };
 
 
-
-    /**
-        Returns a push object with
-    */
-
-    var _buildPush = function () {
-
-        /*
-        Build Vibration Pattern
-        [NumberOfTimesToRepeat,DurationOfEachVibration,DelayBetweenVibrations]
-        */
-        var vibrationPattern = [];
-        for (var i = 0; i < $scope.settings.vibrationRepeat; i++) {
-            vibrationPattern.push($scope.settings.vibrationDuration);
-            vibrationPattern.push($scope.settings.vibrationDelay);
-        }
-
-        var push = {};
-
-        if ($scope.selected.channel) {
-            push.channel = $scope.selected.channel;
-        } else {
-            push.channel = "";
-        }
-        if ($scope.selected.contact) {
-            push.contact = $scope.selected.contact;
-        } else {
-            push.contact = "";
-        }
-        push.notification = {
-            "carSpeed": $scope.carSpeed,
-            "carDirection": $scope.carDirection,
-        };
-        push.settings = {
-            "delayTime": $scope.settings.delayTime,
-            "soundEnabled": $scope.settings.soundEnabled,
-            "vibrationEnabled": $scope.settings.vibrationEnabled,
-            "vibrationPattern": vibrationPattern
-        };
-        push.timeSent = Date.now();
-        console.log("push sent at:" + push.timeSent);
-        return push;
+    $scope.exportNotificaitons = function() {
+      $scope.isExportInProgress = true;
+      $scope.exportMessage = "";
+      $scope.sendEmail();
+      FirebaseService.exportNotifications().then(
+        function(success){
+          $scope.isExportInProgress = false;
+          $scope.exportMessage = success;
+        },
+      function(err){
+        $scope.isExportInProgress = false;
+        $scope.exportMessage = err;
+      });
     };
 
-    $scope.sendPush = function () {
-        var push = _buildPush();
-        console.log("Pusing to:" + push.contact.username + " channel:'" + push.channel + "'");
-        ParseService.sendPush(push);
-        $scope.clearSelection();
-    };
-    $scope.savePerson = function (fname, lname) {
-        ParseService.savePerson(fname, lname);
-    };
-    $scope.getPeople = function (params) {
-        ParseService.getPeople(params);
+
+    $scope.sendEmail = function(){
+      $scope.logFileEmail = $scope.currentUser.attributes.email;
+      var sendEmailPopup = $ionicPopup.show({
+        templateUrl: 'templates/sendEmail.html',
+        scope: $scope,
+        title: 'Email Log File',
+        subTitle: 'Send to this email ?',
+        animation: 'slide-in-up',
+        buttons: [
+          { text: 'Cancel' },
+          {
+            text: '<b>Send Email</b>',
+            type: 'button-positive',
+            onTap: function(e) {
+              if (!$scope.logFileEmail) {
+                //don't allow the user to close unless he enters wifi password
+                e.preventDefault();
+              } else {
+                return $scope.logFileEmail;
+              }
+            }
+          }
+        ]
+      }).then(function (popup) {
+        console.log("Popup",popup);
+        // $scope.semailPopup = popup;
+      });
     };
 
-    $scope.setSpeed = function (speed) {
-        $scope.carSpeed = speed;
-        console.log($scope.carSpeed);
-    };
-    $scope.isSpeedBtnActive = function (type) {
-        return type === $scope.carSpeed;
-    };
-    $scope.setDirection = function (direction) {
-        $scope.carDirection = direction;
-        console.log($scope.carDirection);
-    };
-    $scope.isDirectionBtnActive = function (type) {
-        return type === $scope.carDirection;
-    };
+  }
+]
+)
+.controller('ReceiveCtrl', ['$scope', 'FirebaseService','ParseService', function ($scope, FirebaseService, ParseService) {
+  $scope.currentUser = ParseService.getCurrentUser();
 
-    $scope.clearSelection = function () {
-        $scope.carSpeed = '';
-        $scope.carDirection = '';
-    };
+  $scope.notifications = FirebaseService.notifications;
+
 }])
 
+.controller('SendCtrl', ['$scope', 'ParseService', 'SettingsService', 'Contacts','FirebaseService', '$cordovaNetwork', '$cordovaToast', '$http', '$sce', '$ionicModal','Notification','NotifyService',
+function ($scope, ParseService, SettingsService, Contacts, FirebaseService, $cordovaNetwork, $cordovaToast, $http, $sce, $ionicModal,Notification,NotifyService) {
 
-.controller('SettingsCtrl', ['$scope', 'SettingsService', 'BackgroundService', 'KeepAwakeService', function ($scope, SettingsService, BackgroundService, KeepAwakeService) {
-    $scope.settings = SettingsService.settings;
+  $scope.settings = SettingsService.settings;
+  $scope.lastRefreshed = Contacts.lastRefreshed;
+  var baseUrl = "https://api.parse.com/1/";
+  var pushUrl = "push";
 
-    $scope.toggleBackgroundMode = function () {
-        BackgroundService.toggleBackgroundMode();
+  $scope.currentUser = ParseService.getCurrentUser();
+
+  $scope.contacts = [];
+
+  // $scope.settings.voicePromptEnabled = true;
+  $scope.voicePromptNumber =1;
+  // $scope.vibrationEnabled =true;
+
+  $scope.selected = {
+    contact: {}
+  };
+
+  $ionicModal.fromTemplateUrl('templates/contacts-list.html', {
+    scope: $scope,
+    animation: 'slide-in-up',
+    //        controller: 'SendCtrl'
+  }).then(function (modal) {
+    $scope.getContacts();
+    $scope.modalContacts = modal;
+  });
+  $scope.showContacts = function () {
+    $scope.getContacts();
+    $scope.modalContacts.show();
+    if (Contacts.lastRefreshed === "Never")
+    ParseService.refreshContactsList();
+  };
+  $scope.hideContacts = function () {
+    $scope.modalContacts.hide();
+  };
+
+  $scope.selectContact = function (contact) {
+    $scope.selected.contact = contact;
+    $scope.hideContacts();
+  };
+
+  $scope.clearSelectedContact = function () {
+    console.log("Clearing Contact");
+    $scope.selected.contact = {};
+    console.log($scope.selected.contact);
+  };
+
+  $scope.getContacts = function () {
+    if ($scope.contacts.length > 0) {} else {
+      $scope.contacts = ParseService.getContacts();
+    }
+  };
+  $scope.getContactsLastRefreshed = function () {
+    return Contacts.contactsLastRefreshed;
+  };
+
+  $scope.sendNotification = function () {
+    var notifParams ={
+      vibrationEnabled:$scope.settings.vibrationEnabled,
+      delayTime:$scope.settings.delayTime,
+      vibrationDuration:$scope.settings.vibrationDuration,
+      vibrationDelay:$scope.settings.vibrationDelay,
+      vibrationRepeat:$scope.settings.vibrationRepeat,
+      voicePromptEnabled:$scope.settings.voicePromptEnabled,
+      voicePromptNumber:$scope.voicePromptNumber
     };
-    $scope.toggleKeepAwake = function () {
-        KeepAwakeService.toggleKeepAwake();
-    };
-    }]);
+    console.log(notifParams);
+    var notification = new Notification(notifParams);
+    console.log(notification);
+    notification.sendTo({
+      objectId : $scope.selected.contact.objectId,
+      name : $scope.selected.contact.name
+    });
+    // $scope.clearSelection();
+    NotifyService.toast("Notification Sent");
+  };
+  $scope.savePerson = function (fname, lname) {
+    ParseService.savePerson(fname, lname);
+  };
+  $scope.getPeople = function (params) {
+    ParseService.getPeople(params);
+  };
+
+  $scope.setVoicePrompt = function (fileNumber) {
+    $scope.voicePromptNumber = fileNumber;
+    console.log($scope.voicePromptNumber);
+  };
+  $scope.isVoicePromptBtnActive = function (fileNumber) {
+    return fileNumber === $scope.voicePromptNumber;
+  };
+  $scope.setDirection = function (direction) {
+    $scope.carDirection = direction;
+    console.log($scope.carDirection);
+  };
+  $scope.isDirectionBtnActive = function (type) {
+    return type === $scope.carDirection;
+  };
+
+  $scope.clearSelection = function () {
+    $scope.voicePromptNumber = '';
+    $scope.carDirection = '';
+  };
+
+}])
+
+.controller('SettingsCtrl', ['$scope', 'SettingsService', 'BackgroundService', 'KeepAwakeService','NotifyService',
+function ($scope, SettingsService, BackgroundService, KeepAwakeService,NotifyService) {
+  $scope.settings = SettingsService.settings;
+
+  $scope.toggleBackgroundMode = function () {
+    BackgroundService.toggleBackgroundMode();
+  };
+  $scope.toggleKeepAwake = function () {
+    KeepAwakeService.toggleKeepAwake();
+  };
+  $scope.playVoicePrompt = function(voicePromptNumber){
+    NotifyService.playVoicePrompt(voicePromptNumber);
+  };
+}]);

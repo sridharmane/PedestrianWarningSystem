@@ -1,25 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<widget id="edu.buffalo.cognitivesystemlab.pedestrianwarningsystem" version="0.6.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget  id="edu.buffalo.cognitivesystemlab.pedestrianwarningsystem" version="0.6.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <name>Pedestrian Warning System</name>
   <description>
-        An Ionic Framework and Cordova project.
-    </description>
+    An Ionic Framework and Cordova project.
+  </description>
   <author email="sridhars4s@gmail.com" href="https://about.me/sridharmane">
-        Sridhar Mane
-    </author>
+    Sridhar Mane
+  </author>
   <content src="index.html"/>
-  <access origin="*"/>
-  <access origin="*content*"/>
+  <!-- <access origin="*"/> -->
+  <!-- Access to all the subdomains on firebaseio.com -->
+  <access origin="http://*.firebaseio.com" />
+  <allow-navigation href="*://*.parse.com/*"/>
   <allow-navigation href="http://*/*"/>
   <allow-navigation href="https://*/*"/>
-  <allow-navigation href="*://*.parse.com/*"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *"/>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' parse.com"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 192.168.1.10"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' google.com"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src 'self' https://cordova.apache.org"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' localhost"/>
   <preference name="webviewbounce" value="false"/>
   <preference name="UIWebViewBounce" value="false"/>
   <preference name="DisallowOverscroll" value="true"/>

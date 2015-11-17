@@ -11,21 +11,13 @@
     </ion-header-bar>
     <ion-content>
         <div class="list">
-<!--
-            <div class="item item-divider">Channels
-                <i> (updated : {{getChannelsLastRefreshed() | date:'short'}})</i>
-            </div>
-            <a class="item" ng-click="selectChannel(channel)" ng-repeat="channel in channels">
-                {{channel.name}}
-            </a>
--->
             <ion-item class="item item-divider">Contacts
                 <i> (updated : {{getContactsLastRefreshed() | date:'short'}})</i>
             </ion-item>
             <a class="item" ng-click="selectContact(contact)" ng-repeat="contact in contacts">
-               {{contact.name}}{{" "}}({{contact.email}})               
+              <h2>{{contact.name}}</h2>
+               <p>{{contact.email}}</p>
             </a>
         </div>
-
     </ion-content>
 </ion-modal-view>

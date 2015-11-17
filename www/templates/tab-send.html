@@ -1,57 +1,60 @@
 <ion-view view-title="Send Notifications" name="tab-send">
-
-    <ion-content class="padding">
-        <div class="list card">
-            <div class="item item-divider">Select Contact</div>
-            <div class="list">
-                <ion-item ng-if="!selected.contact.objectId && !selected.channel.name" ng-click="showContacts()" class="item"> Tap to Select</ion-item>
-                <div ng-if="selected.contact.objectId" class="item item-button-right">
-                    <h2 class="inline">{{selected.contact.name +" ("+ selected.contact.email+")"}}</h2>
-                    <button class="button icon button-icon assertive" ng-click="clearSelectedContact()">
-                        <i class="icon ion-minus-circled assertive"></i>
-                    </button>
-                </div>
-                <div ng-if="selected.channel.name" class="item item-button-right">
-                    {{selected.channel.name}}
-                    <button class="button icon button-icon assertive" ng-click="clearSelectedChannel()">
-                        <i class="icon ion-minus-circled assertive"></i>
-                    </button>
-                </div>
-            </div>
+  <ion-content class="padding">
+    <div class="list card">
+      <div class="item item-divider">Select Contact</div>
+      <div class="list">
+        <ion-item ng-if="!selected.contact.objectId" ng-click="showContacts()" class="item"> Tap to Select</ion-item>
+        <div ng-if="selected.contact.objectId" class="item item-button-right">
+          <h2 class="inline">{{selected.contact.name +" ("+ selected.contact.email+")"}}</h2>
+          <button class="button icon button-icon assertive" ng-click="clearSelectedContact()">
+            <i class="icon ion-minus-circled assertive"></i>
+          </button>
         </div>
-        <div class="list card">
-            <div class="item item-divider">Car Speed</div>
-            <div class="item item-body">
-                <div class="button-bar">
-                    <a class="button" ng-class="{'button-positive': isSpeedBtnActive('slow')}" ng-click="setSpeed('slow')">Slow</a>
-                    <a class="button" ng-class="{'button-positive': isSpeedBtnActive('fast')}" ng-click="setSpeed('fast')">Fast</a>
-                    <a class="button" ng-class="{'button-positive': isSpeedBtnActive('veryFast')}" ng-click="setSpeed('veryFast')">Very Fast</a>
-                </div>
-            </div>
+      </div>
+    </div>
+    <div class="list card">
+      <li class="item item-toggle dark">Voice Prompt
+        <label class="toggle toggle-balanced">
+          <input type="checkbox" ng-model="settings.voicePromptEnabled">
+          <div class="track">
+            <div class="handle"></div>
+          </div>
+        </label>
+      </li>
+      <div class="item item-body" ng-show="settings.voicePromptEnabled">
+        <div class="button-bar">
+          <a class="button" ng-class="{'button-positive': isVoicePromptBtnActive(1)}" ng-click="setVoicePrompt(1)">Prompt 1</a>
+          <a class="button" ng-class="{'button-positive': isVoicePromptBtnActive(2)}" ng-click="setVoicePrompt(2)">Prompt 2</a>
+          <a class="button" ng-class="{'button-positive': isVoicePromptBtnActive(3)}" ng-click="setVoicePrompt(3)">Prompt 3</a>
         </div>
-        <div class="list card">
-            <div class="item item-divider">Car Direction</div>
-            <div class="item item-body">
-                <div class="button-bar">
-                    <a class="button icon-left ion-arrow-left-c" ng-class="{'button-positive': isDirectionBtnActive('left')}" ng-click="setDirection('left')">Left</a>
-                    <a class="button icon-right ion-arrow-right-c" ng-class="{'button-positive': isDirectionBtnActive('right')}" ng-click="setDirection('right')">Right</a>
-                </div>
-            </div>
-        </div>
-        <button class="button icon-left button-full button-positive " ng-hide="carDirection===undefined || carSpeed==='' || carSpeed===undefined || selected.contact.username===undefined ||selected.contact.username==='' " ng-disabled="settings.isOffline " ng-class="settings.isOffline? 'ion-alert-circled': 'ion-paper-airplane' " ng-click="sendPush() ">
-            {{settings.isOffline?"No Network - Cannot Send Notification ":"Send Notification "}}
-        </button>
-        <div class="list">
-            <div class="list card" ng-show="carDirection ==='' || carDirection === undefined || carSpeed==='' || carSpeed === undefined || selected.contact.username ==='' || selected.contact.username === undefined ">
-                <div class=" item item-divider">Please select the following :</div>
-                <!--                <div class="item ">-->
-                <span class="item assertive " ng-if="selected.contact.username==='' || selected.contact.username===undefined ">-&gt; Contact</span>
-                <span class="item assertive " ng-if="carSpeed===undefined || carSpeed==='' "> -&gt; Car Speed</span>
-                <span class="item assertive " ng-if="carDirection===undefined || carDirection==='' "> -&gt; Car Direction</span>
-                <!--                </div>-->
-
-            </div>
-        </div>
-        <audio id="audio "></audio>
-    </ion-content>
+      </div>
+    </div>
+    <div class="list card">
+      <li class="item item-toggle dark">Vibration Pattern
+        <label class="toggle toggle-balanced">
+          <input type="checkbox" ng-model="settings.vibrationEnabled">
+          <div class="track">
+            <div class="handle"></div>
+          </div>
+        </label>
+      </li>
+      <div class="item item-body" ng-show="settings.vibrationEnabled">
+        <label class="item item-input row ">
+          <span class="input-label col col-75 padding">Vibration Duration (ms)</span>
+          <input type="text" class="dark col col-25 padding" ng-model="settings.vibrationDuration">
+        </label>
+        <label class="item item-input row">
+          <span class="input-label col col-75 padding">Vibration Delay (ms)</span>
+          <input type="text" class="dark col-25 padding" ng-model="settings.vibrationDelay">
+        </label>
+        <label class="item item-input row ">
+          <span class="input-label col col-75 padding">Vibration Repeat</span>
+          <input type="text" class="dark col col-25 padding" ng-model="settings.vibrationRepeat">
+        </label>
+      </div>
+    </div>
+    <button class="button icon-left button-full button-positive " ng-disabled="!(selected.contact.objectId && settings.vibrationEnabled) && !(selected.contact.objectId && settings.voicePromptEnabled) && !(selected.contact.objectId && settings.voicePromptEnabled && settings.vibrationEnabled)" ng-class="settings.isOffline? 'ion-alert-circled': 'ion-paper-airplane' " ng-click="sendNotification()">
+      {{settings.isOffline?"No Network - Cannot Send Notification ":"Send Notification "}}
+    </button>
+  </ion-content>
 </ion-view>

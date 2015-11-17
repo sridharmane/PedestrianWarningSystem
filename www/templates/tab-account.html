@@ -1,25 +1,41 @@
-<ion-view view-title="Account Manager" view-name="account" ng-init="getCurrentUser()">
-    <ion-content class="padding">
-        <div class="list card" ng-show="currentUser.objectId">
-            <div class="item item-divider item-button-right">
-                Current User
-            </div>
-            <div class="item item-body">
-                <h2>{{currentUser.name}}</h2>
-                <p>{{currentUser.email}}</p>
-            </div>
-            <a class="item button button-block button-assertive icon-left ion-log-out" ng-click="logout()">Logout</a>
-        </div>
-        <div class="list card">
-            <div class="item item-divider item-button-right">
-                New User
-            </div>
-                <button class="item button button-block button-positive icon-left ion-log-in" ng-click="login()">
-                    Login
-                </button>
-                <button class="item button button-block button-positive icon-left ion-ios-personadd" ng-click="signUp()">
-                    Sign Up
-                </button>
-        </div>
-    </ion-content>
+<ion-view view-title="Account Manager" view-name="account">
+  <ion-content class="padding">
+    <div class="list card" ng-show="currentUser">
+      <div class="item item-divider item-button-right">
+        Current User
+      </div>
+      <div class="item-body">
+        <h2>{{currentUser.attributes.name}}</h2>
+        <p>{{currentUser.attributes.email}}</p>
+        <a class="button button-block button-assertive icon-left ion-log-out" ng-click="logout()">Logout</a>
+      </div>
+
+    </div>
+    <div class="list card">
+      <div class="item item-divider item-button-right">
+        New User
+      </div>
+      <div class="item-body">
+        <button class="item button button-block button-positive icon-left ion-log-in" ng-click="login()">
+          Login
+        </button>
+        <button class="item button button-block button-positive icon-left ion-ios-personadd" ng-click="signUp()">
+          Sign Up
+        </button>
+      </div>
+    </div>
+    <div class="list card">
+      <div class="item item-divider item-button-right">
+        Other Actions
+      </div>
+      <div class="item-body">
+        <button class="item button button-positive button-block " ng-click="checkForUpdates()">
+          Check for updates
+        </button>
+        <button class="item button button-balanced button-block button-pulse" ng-if="hasUpdate" ng-click="doUpdate()">
+          Download update
+        </button>
+      </div>
+    </div>
+  </ion-content>
 </ion-view>
