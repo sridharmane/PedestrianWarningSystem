@@ -3,13 +3,14 @@
     <form>
       <ion-list>
         <div class="item item-divider">General</div>
-        <!--                <ion-toggle ng-model="settings.backgroundModeEnabled" ng-change="toggleBackgroundMode()" toggle-class="toggle-balanced">Background Mode {{settings.backgroundModeEnabled?'Enabled':'Disabled'}}</ion-toggle>-->
         <ion-toggle ng-model="settings.keepAwake" ng-change="toggleKeepAwake()" toggle-class="toggle-balanced">Keep Screen Awake ({{settings.keepAwake?'On':'Off'}})</ion-toggle>
-        <div class="item item-divider">Preview Voice Prompt</div>
+        <div class="item item-divider item-icon-right">Preview Voice Prompt
+          <i class="icon ion-refresh positive" ng-click="loadVoicePrompts()"></i>
+        </div>
         <div class="button-bar">
-          <a class="button icon-left ion-play button-stable" ng-click="playVoicePrompt(1)">Prompt 1</a>
-          <a class="button icon-left ion-play" ng-click="playVoicePrompt(2)">Prompt 2</a>
-          <a class="button icon-left ion-play" ng-click="playVoicePrompt(3)">Prompt 3</a>
+          <a class="button icon-left ion-play button-dark" ng-click="playVoicePrompt(1)">Prompt 1</a>
+          <a class="button icon-left ion-play button-dark" ng-click="playVoicePrompt(2)">Prompt 2</a>
+          <a class="button icon-left ion-play button-dark" ng-click="playVoicePrompt(3)">Prompt 3</a>
         </div>
 
         <div class="item item-divider">Notification Settings</div>

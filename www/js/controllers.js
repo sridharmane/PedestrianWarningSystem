@@ -266,15 +266,16 @@ function ($scope, ParseService, SettingsService, Contacts, FirebaseService, $cor
 
 }])
 
-.controller('SettingsCtrl', ['$scope', 'SettingsService', 'BackgroundService', 'KeepAwakeService','NotifyService',
-function ($scope, SettingsService, BackgroundService, KeepAwakeService,NotifyService) {
+.controller('SettingsCtrl', ['$scope', 'SettingsService', 'ParseService', 'KeepAwakeService','NotifyService',
+function ($scope, SettingsService, ParseService, KeepAwakeService,NotifyService) {
   $scope.settings = SettingsService.settings;
 
-  $scope.toggleBackgroundMode = function () {
-    BackgroundService.toggleBackgroundMode();
-  };
+
   $scope.toggleKeepAwake = function () {
     KeepAwakeService.toggleKeepAwake();
+  };
+  $scope.loadVoicePrompts = function(){
+    ParseService.getVoicePromptSources();
   };
   $scope.playVoicePrompt = function(voicePromptNumber){
     NotifyService.playVoicePrompt(voicePromptNumber);
