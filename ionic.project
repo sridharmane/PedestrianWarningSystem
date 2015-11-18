@@ -1,6 +1,6 @@
 {
-  "name": "PedestrianWarningSystem",
-  "app_id": "b406d6a7",
+  "name": "PWS",
+  "app_id": "bcecd0bd",
   "gulpStartupTasks": [
     "sass",
     "watch"

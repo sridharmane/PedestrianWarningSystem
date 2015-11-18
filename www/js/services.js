@@ -247,7 +247,6 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
   var clientKey = "PsNI6F4VeSO0m2yaHLn6uYnoaN8X7sbUJ7nOj1wE";
   var jsKey = "YNFW7qk1gKUIxE2RiOGJFKIPyGtdorus8E1mPCyr";
   var restAPIKey = "gJwHkPD7RtIrF1kqLyg1rqbtvcRKeitNijAKXcAg";
-  var installationId = '';
 
 
   /**

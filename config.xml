@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<widget id="edu.buffalo.cognitivesystemlab.pedestrianwarningsystem" version="0.8.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-  <name>Pedestrian Warning System</name>
+<widget id="edu.buffalo.cognitivesystemlab.pedestrianwarningsystem" version="0.8.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <name>PWS</name>
   <description>
-    An Ionic Framework and Cordova project.
+    Pedestrian Warning System
   </description>
   <author email="sridhars4s@gmail.com" href="https://about.me/sridharmane">
     Sridhar Mane
@@ -13,6 +13,7 @@
   <allow-navigation href="http://*/*"/>
   <allow-navigation href="https://*/*"/>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' parse.com"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' firebaseio.com"/>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' localhost"/>
   <preference name="webviewbounce" value="false"/>
   <preference name="UIWebViewBounce" value="false"/>
@@ -20,12 +21,7 @@
   <preference name="BackupWebStorage" value="none"/>
   <preference name="SplashScreen" value="screen"/>
   <preference name="SplashScreenDelay" value="3000"/>
-  <feature name="StatusBar">
-    <param name="ios-package" value="CDVStatusBar" onload="true"/>
-  </feature>
-  <feature name="Contacts">
-    <param name="android-package" value="org.apache.cordova.contacts.ContactManager"/>
-  </feature>
+
   <platform name="android">
     <splash src="resources/android/splash/drawable-land-ldpi-screen.png" density="land-ldpi"/>
     <splash src="resources/android/splash/drawable-land-mdpi-screen.png" density="land-mdpi"/>

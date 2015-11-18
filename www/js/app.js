@@ -32,15 +32,14 @@ angular.module('PedestrianWarningSystem', [
     Initialize Parse Service, return installationId
     */
     ParseService.init().then(
-      function (installationId) {
-        console.log(installationId);
+      function () {
 
       },
       function (err) {
         console.error("Init Error : " + JSON.stringify(err));
       }
     );
-    // kick off the platform web client
+    // kick off  platform web client
     Ionic.io();
 
     var currentUser = ParseService.getCurrentUser();
@@ -61,7 +60,8 @@ angular.module('PedestrianWarningSystem', [
 
 })
 
-.config(['$stateProvider', '$urlRouterProvider', '$compileProvider', function ($stateProvider, $urlRouterProvider, $compileProvider) {
+.config(['$stateProvider', '$urlRouterProvider', '$compileProvider','$ionicAppProvider',
+function ($stateProvider, $urlRouterProvider, $compileProvider,$ionicAppProvider) {
 
   // Ionic uses AngularUI Router which uses the concept of states
   // Learn more here: https://github.com/angular-ui/ui-router
@@ -118,13 +118,12 @@ angular.module('PedestrianWarningSystem', [
   $urlRouterProvider.otherwise('/tab/account');
   $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|file|blob|cdvfile|content):|data:image\//);
 
-}])
-.config(['$ionicAppProvider', function ($ionicAppProvider) {
   //Identify the Ionic App
   $ionicAppProvider.identify({
     // The App ID for the server
-    app_id: 'b406d6a7',
+    app_id: 'bcecd0bd',
     // The API key all services will use for this app
-    api_key: 'dfed80e686e8f52c3edec5eaccbc265f48ec6c2dd54a9cff'
+    api_key: 'c701d30b5e9853b2c442e8dfd6a9bcaafa66ab9134782510'
   });
+
 }]);
