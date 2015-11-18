@@ -73,11 +73,7 @@ angular.module('PedestrianWarningSystem.services', [])
 }])
 .service("NotifyService", ['SettingsService', '$cordovaToast', '$cordovaMedia', '$cordovaVibration','$q',
 function (SettingsService, $cordovaToast, $cordovaMedia, $cordovaVibration,$q) {
-  this.voicePrompts ={
-    src1:"",
-    src2:"",
-    src3:""
-  };
+  this.voicePrompts =[];
   this.lastPush = {
     timeDifference: 1234,
     timeSinceReceived: 0,
@@ -111,24 +107,16 @@ function (SettingsService, $cordovaToast, $cordovaMedia, $cordovaVibration,$q) {
   };
 
   this.playVoicePrompt = function (voicePromptNumber) {
-    var src = this.voicePrompts["src"+voicePromptNumber];
-    console.log(src);
-    //Check if  Media Plugin is available. If available, use it to notify.
-    // if ($cordovaMedia) {
-    //   var media = $cordovaMedia.newMedia(src);
-    //   // console.log(media);
-    //   media.play();
-    //   this.log("Played Sound");
-    // } else { //Fallback to html5 audio
+    var voicePrompt = this.voicePrompts[voicePromptNumber-1];
+    console.log(voicePrompt);
+
     this.log("Using HTML5 Audio");
     var audio = document.getElementById("audio");
-    audio.src = src;
+    audio.src = voicePrompt.url;
     audio.play();
     this.log("Played Sound");
-    // }
 
   };
-
 
 
   this.notify = function (notification) {
@@ -369,14 +357,27 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
 
   //Getting voiceprompt source from Parse Config
   this.getVoicePromptSources = function(){
-    Parse.Config.get().then(
-      function(config){
-        NotifyService.voicePrompts.src1 = config.get('voicePrompt1').url();
-        NotifyService.voicePrompts.src2 = config.get('voicePrompt2').url();
-        NotifyService.voicePrompts.src3 = config.get('voicePrompt3').url();
+    var Media = Parse.Object.extend("Media");
+    var query = new Parse.Query(Media);
+    query.find({
+      success: function(results) {
+        console.log('voice prompts',results);
+        console.log("Successfully retrieved " + results.length + " voice prompts.");
+        // Do something with the returned Parse.Object values
+        for (var i = 0; i < results.length; i++) {
+          NotifyService.voicePrompts[i] = {
+            name:'voicePrompt'+(i+1),
+            url:results[i].get('file').url()
+          };
+        }
         console.log(NotifyService.voicePrompts);
+      },
+      error: function(error) {
+        console.error("Error: " + error.code + " " + error.message);
       }
-    );
+    });
+
+
     // console.log(Parse.Config.get("voicePrompt1"));
   };
 
