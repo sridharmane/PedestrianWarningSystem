@@ -121,6 +121,16 @@ function (SettingsService, $cordovaToast, $cordovaMedia, $cordovaVibration,$q) {
 
   this.notify = function (notification) {
     var defer = $q.defer();
+    var timeDifference = notification.timeDifference;
+    var detlayTime = notification.delayTime;
+    //check if notificaiton was received early/ontime/late
+    //accordingly notify the user.
+    var timeLeft = timeDifference - delayTime;
+    if(timeLeft < 0){
+      this.toast('Delayed', timeLeft);
+    }else{
+      this.toast('In Time', timeLeft);
+    }
     var response = {
       voicePromptPlayed:false,
       vibrattionPlayed:false
@@ -261,7 +271,7 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
         for (var i = 0; i < contactsJson.length; i++) {
           contactsList.push(contactsJson[i]);
         }
-        console.log(contactsList);
+        // console.log(contactsList);
         Contacts.updateContactsList(contactsList);
       }
     });
@@ -275,12 +285,51 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
   };
 
   this.getCurrentUser = function () {
-
+    var currentUser = null;
     try {
-      return Parse.User.current();
+      //Check if user is already logged in
+      if(Parse.User.current()){
+        $localstorage.set('sessionToken',Parse.User.current().getSessionToken());
+        console.log("Returning Current User");
+        currentUser =  Parse.User.current();
+      }else{
+        //No user logged in.
+        //Check localstorage for session tokens
+        var sessionToken = $localstorage.get('sessionToken','');
+        if(sessionToken !== ''){
+          //session token available.
+          //become that user
+          try{
+          Parse.User.become(sessionToken).then(
+            function(){
+            //success, return current user
+            console.log("Became existing User and returning Current User");
+            currentUser = Parse.User.current();
+
+          },function(error){
+
+            console.error("Cannot become user",error);
+            $localstorage.set('sessionToken','');
+
+            currentUser = null;
+          });
+        }catch(e){
+          console.error("Error while becoming user, returning null",e);
+          $localstorage.set('sessionToken','');
+          currentUser = null;
+        }
+        }
+        else{
+          console.log("Returning Null");
+          currentUser = null;
+        }
+
+      }
     } catch (e) {
-      return null;
+      console.log("Catch & Returning Null");
+      currentUser = null;
     }
+    return currentUser;
   };
 
 
@@ -292,6 +341,9 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
 
     Parse.User.logIn(username, password, {
       success: function (user) {
+        //Set the session Token
+        $localstorage.set('sessionToken',Parse.User.current().getSessionToken());
+
         defer.resolve(JSON.parse(JSON.stringify(user)));
       },
       error: function (user,error) {
@@ -330,6 +382,10 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
     //do the signup using the parse api
     user.signUp(null, {
       success: function (data) {
+
+        //Set the session Token
+        $localstorage.set('sessionToken',Parse.User.current().getSessionToken());
+
         // Hooray! Let them use the app now.
         var user = JSON.parse(JSON.stringify(data));
         defer.resolve(user);
@@ -361,7 +417,7 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
     var query = new Parse.Query(Media);
     query.find({
       success: function(results) {
-        console.log('voice prompts',results);
+        // console.log('voice prompts',results);
         console.log("Successfully retrieved " + results.length + " voice prompts.");
         // Do something with the returned Parse.Object values
         for (var i = 0; i < results.length; i++) {
@@ -370,7 +426,7 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
             url:results[i].get('file').url()
           };
         }
-        console.log(NotifyService.voicePrompts);
+        // console.log(NotifyService.voicePrompts);
       },
       error: function(error) {
         console.error("Error: " + error.code + " " + error.message);
@@ -404,7 +460,7 @@ function($q, $http, $filter, $firebaseArray,NotifyService,ParseService,$cordovaF
   .on("child_added", function(snapshot, prevChildKey) {
     var notif = snapshot.val();
     var ref = snapshot.ref();
-    console.log(snapshot.key());
+    // console.log(snapshot.key());
     // if(currentUser === null){
     //   currentUser = ParseService.getCurrentUser();
     // }
