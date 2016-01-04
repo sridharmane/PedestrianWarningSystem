@@ -71,6 +71,7 @@ function ($scope, ParseService, $ionicModal,$ionicPopup, $localstorage, NotifySe
         $scope.currentUser = ParseService.getCurrentUser();
       }
     }, function (error) {
+      $scope.loginError = error.message;
       NotifyService.toast(error);
     });
   };
@@ -269,7 +270,17 @@ function ($scope, ParseService, SettingsService, Contacts, FirebaseService, $cor
 .controller('SettingsCtrl', ['$scope', 'SettingsService', 'ParseService', 'KeepAwakeService','NotifyService',
 function ($scope, SettingsService, ParseService, KeepAwakeService,NotifyService) {
   $scope.settings = SettingsService.settings;
-
+  $scope.notificationDelayTimes = [
+    0,
+    500,
+    1000,
+    1500,
+    2000,
+    2500,
+    3000,
+    3500,
+    4000
+  ];
 
   $scope.toggleKeepAwake = function () {
     KeepAwakeService.toggleKeepAwake();

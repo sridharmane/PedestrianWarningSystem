@@ -39,9 +39,10 @@ angular.module('PedestrianWarningSystem.services', [])
 }])
 
 .service("SettingsService", [function () {
+  //Default Settings for the app
   this.settings = {
 
-    'delayTime': 2000, // in milli seconds
+    'delayTime': 0, // in milli seconds
     'isOffline': false,
     'voicePromptEnabled': true,
     'vibrationEnabled': true,
@@ -122,7 +123,7 @@ function (SettingsService, $cordovaToast, $cordovaMedia, $cordovaVibration,$q) {
   this.notify = function (notification) {
     var defer = $q.defer();
     var timeDifference = notification.timeDifference;
-    var detlayTime = notification.delayTime;
+    var delayTime = notification.delayTime;
     //check if notificaiton was received early/ontime/late
     //accordingly notify the user.
     var timeLeft = timeDifference - delayTime;

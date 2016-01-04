@@ -7,25 +7,20 @@
         <div class="item item-divider item-icon-right">Preview Voice Prompt
           <i class="icon ion-refresh positive" ng-click="loadVoicePrompts()"></i>
         </div>
-        <div class="button-bar">
-          <a class="button icon-left ion-play button-dark" ng-click="playVoicePrompt(1)">Prompt 1</a>
-          <a class="button icon-left ion-play button-dark" ng-click="playVoicePrompt(2)">Prompt 2</a>
-          <a class="button icon-left ion-play button-dark" ng-click="playVoicePrompt(3)">Prompt 3</a>
+        <div class="item button-bar">
+          <a class="button icon-left ion-play button-light" ng-click="playVoicePrompt(1)">Prompt 1</a>
+          <a class="button icon-left ion-play button-light" ng-click="playVoicePrompt(2)">Prompt 2</a>
+          <a class="button icon-left ion-play button-light" ng-click="playVoicePrompt(3)">Prompt 3</a>
         </div>
 
         <div class="item item-divider">Notification Settings</div>
         <label class="item item-select">
           <span class="input-label">Notification Delay Time (ms)</span>
-          <select ng-model="settings.delayTime">
-            <option>500</option>
-            <option>1000</option>
-            <option>1500</option>
-            <option>2000</option>
-          </select>
+          <select ng-options="item as item for item in notificationDelayTimes track by item" ng-model="settings.delayTime"></select>
         </label>
-        <ion-toggle ng-model="settings.voicePromptEnabled" toggle-class="toggle-balanced">Voice Prompt {{settings.voicePromptEnabled?'Enabled':'Disabled'}}</ion-toggle>
+        <!-- <ion-toggle ng-model="settings.voicePromptEnabled" toggle-class="toggle-balanced">Voice Prompt {{settings.voicePromptEnabled?'Enabled':'Disabled'}}</ion-toggle>
         <ion-toggle ng-model="settings.vibrationEnabled" toggle-class="toggle-balanced">Vibration {{settings.vibrationEnabled?'Enabled':'Disabled'}}</ion-toggle>
-        <label class="item item-select" ng-class="{disabled: settings.vibrationEnabled==false}">
+        <label class="item item-select" ng-disabled="settings.vibrationEnabled">
           <span class="input-label">Vibration Pulse Duration (milli seconds)</span>
           <select ng-model="settings.vibrationDuration" ng-disabled="!settings.vibrationEnabled">
             <option>1000</option>
@@ -57,7 +52,7 @@
             <option>2</option>
             <option>3</option>
           </select>
-        </label>
+        </label> -->
       </ion-list>
     </form>
   </ion-content>
