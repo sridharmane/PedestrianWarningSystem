@@ -344,7 +344,6 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
       success: function (user) {
         //Set the session Token
         $localstorage.set('sessionToken',Parse.User.current().getSessionToken());
-
         defer.resolve(JSON.parse(JSON.stringify(user)));
       },
       error: function (user,error) {
@@ -383,10 +382,8 @@ function ($q, Contacts, SettingsService, NotifyService, $localstorage) {
     //do the signup using the parse api
     user.signUp(null, {
       success: function (data) {
-
         //Set the session Token
         $localstorage.set('sessionToken',Parse.User.current().getSessionToken());
-
         // Hooray! Let them use the app now.
         var user = JSON.parse(JSON.stringify(data));
         defer.resolve(user);
@@ -454,49 +451,51 @@ function($q, $http, $filter, $firebaseArray,NotifyService,ParseService,$cordovaF
   FirebaseService.saveNotification = function(notification){
     notificationsRef.push(notification);
   };
+  FirebaseService.listenToNotifications = function(user){
+    // Retrieve new posts as they are added to our database
+    notificationsRef.orderByChild("toUserId")
+    .equalTo(user.id)
+    .on("child_added", function(snapshot, prevChildKey) {
+      var notif = snapshot.val();
+      var ref = snapshot.ref();
+      // console.log(snapshot.key());
+      // if(currentUser === null){
+      //   currentUser = ParseService.getCurrentUser();
+      // }
 
-  // Retrieve new posts as they are added to our database
-  notificationsRef.orderByChild("notificationPlayed")
-  .equalTo(false)
-  .on("child_added", function(snapshot, prevChildKey) {
-    var notif = snapshot.val();
-    var ref = snapshot.ref();
-    // console.log(snapshot.key());
-    // if(currentUser === null){
-    //   currentUser = ParseService.getCurrentUser();
-    // }
+      if(notif.timeSent && !notif.timeReceived && !notif.notificationPlayed){
+        var timestamp = Date.now();
+        var timeDifference = timestamp - notif.timeSent;
+        ref.child("timeReceived").set(timestamp);
+        ref.child("timeDifference").set(timeDifference);
+        //Add to notifications list.
+        FirebaseService.notifications.push(notif);
 
-    if(notif.timeSent && !notif.timeReceived && !notif.notificationPlayed){
-      var timestamp = Date.now();
-      var timeDifference = timestamp - notif.timeSent;
-      ref.child("timeReceived").set(timestamp);
-      ref.child("timeDifference").set(timeDifference);
-      //Add to notifications list.
-      FirebaseService.notifications.push(notif);
+        NotifyService.notify(notif).then(function(notifStatus){
 
-      NotifyService.notify(notif).then(function(notifStatus){
+          if (notifStatus.voicePromptPlayed) {
+            ref.child("voicePromptPlayed").set(true);
+            ref.child("timeVoicePromptPlayed").set(notifStatus.timeVoicePromptPlayed);
+          }
+          if (notifStatus.vibrationPlayed) {
+            ref.child("vibrationPlayed").set(true);
+            ref.child("timeVibrationPlayed").set(notifStatus.timeVibrationPlayed);
+          }
+          if(notifStatus.voicePromptPlayed || notifStatus.vibrationPlayed){
+            ref.child("notificationPlayed").set(true);
+          }
+        });
 
-        if (notifStatus.voicePromptPlayed) {
-          ref.child("voicePromptPlayed").set(true);
-          ref.child("timeVoicePromptPlayed").set(notifStatus.timeVoicePromptPlayed);
-        }
-        if (notifStatus.vibrationPlayed) {
-          ref.child("vibrationPlayed").set(true);
-          ref.child("timeVibrationPlayed").set(notifStatus.timeVibrationPlayed);
-        }
-        if(notifStatus.voicePromptPlayed || notifStatus.vibrationPlayed){
-          ref.child("notificationPlayed").set(true);
-        }
-      });
+      }
+      else{
+        //Notification already played.
+        //Add to notifications list.
+        FirebaseService.notifications.push(notif);
+      }
 
-    }
-    else{
-      //Notification already played.
-      //Add to notifications list.
-      FirebaseService.notifications.push(notif);
-    }
+    });
+  };
 
-  });
   return FirebaseService;
 }])
 
@@ -540,10 +539,9 @@ function($q, $http, $filter, $firebaseArray,NotifyService,ParseService,$cordovaF
     }
     var currentUser = ParseService.getCurrentUser();
     //Add From and To Fields
-    this.notification.from = {
-      objectId:  currentUser.id,
-      name : currentUser.attributes.name
-    };
+    this.notification.fromUserId = currentUser.id;
+    this.notification.fromUserName = currentUser.attributes.name;
+
 
     this.notification.notificationPlayed = false;
     this.notification.timeNotificationPlayed = 0;
@@ -554,7 +552,8 @@ function($q, $http, $filter, $firebaseArray,NotifyService,ParseService,$cordovaF
   // Define the "instance" methods using the prototype
   // and standard prototypal inheritance.
   Notification.prototype.sendTo = function(toUser) {
-    this.notification.to = toUser;
+    this.notification.toUserId = toUser.objectId;
+    this.notification.toUserName = toUser.name;
     this.notification.timeSent = Date.now();
     FirebaseService.saveNotification(this.notification);
     console.log("Sent Notification");

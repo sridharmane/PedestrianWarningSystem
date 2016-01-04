@@ -69,6 +69,7 @@ function ($scope, ParseService, $ionicModal,$ionicPopup, $localstorage, NotifySe
         console.log("doLogin: Returned from Parse: " + JSON.stringify(user));
         $scope.hideLogin();
         $scope.currentUser = ParseService.getCurrentUser();
+        FirebaseService.listenToNotifications($scope.currentUser);
       }
     }, function (error) {
       $scope.loginError = error.message;
@@ -96,9 +97,8 @@ function ($scope, ParseService, $ionicModal,$ionicPopup, $localstorage, NotifySe
       $scope.loginData.email,
       $scope.loginData.name)
       .then(function (user) {
-
           $scope.currentUser = ParseService.getCurrentUser();
-
+          FirebaseService.listenToNotifications($scope.currentUser);
       }, function (error) {
         NotifyService.toast(error);
       });
