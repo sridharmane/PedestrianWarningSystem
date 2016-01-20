@@ -505,6 +505,9 @@ function($q, $http, $filter, $firebaseArray,NotifyService,ParseService,$cordovaF
 
     //Create the notification Object
     this.notification = {};
+    //make notification visible so it can be viewd in the dashboard.
+    this.notification.isVisible = true;
+
     console.log(notifParams);
     //Check if vibration was enabled
     if(notifParams.vibrationEnabled){
